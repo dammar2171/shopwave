@@ -11,6 +11,7 @@ function MainLayout() {
         <Link to="/products">Products</Link>
         <Link to="/cart">Cart</Link>
         <Link to="/login">Login</Link>
+        <Link to="/design-system">Design</Link>
         <ModeToggle />
       </header>
 

@@ -6,6 +6,7 @@ import ProductDetailPage from "../features/products/ProductDetailPage";
 import CartPage from "../features/cart/CartPage";
 import LoginPage from "../features/auth/LoginPage";
 import SignupPage from "../features/auth/SignupPage";
+import DesignSystemPage from "@/features/design-system/DesignSystemPage";
 
 const router = createBrowserRouter([
   {
@@ -18,6 +19,7 @@ const router = createBrowserRouter([
       { path: "cart", element: <CartPage /> },
       { path: "login", element: <LoginPage /> },
       { path: "signup", element: <SignupPage /> },
+      { path: "design-System", element: <DesignSystemPage /> },
     ],
   },
 ]);
