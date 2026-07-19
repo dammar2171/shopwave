@@ -10,6 +10,7 @@ const navLinks = [
   { label: "Products", to: "/products" },
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
+  { label: "Wish List", to: "/wish-list" },
   { label: "Design", to: "/design-System" },
 ];
 
@@ -79,12 +80,12 @@ export function Header() {
                   <Link
                     key={link.to}
                     to={link.to}
-                    className="text-base font-medium"
+                    className="text-base font-medium ms-4 py-1.5 px-1 hover:bg-accent-foreground hover:text-secondary"
                   >
                     {link.label}
                   </Link>
                 ))}
-                <Link to="/login" className="text-base font-medium">
+                <Link to="/login" className="text-base ms-4 font-medium">
                   Login
                 </Link>
               </nav>

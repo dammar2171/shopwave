@@ -6,7 +6,7 @@ const footerLinks = {
   Shop: [
     { label: "All Products", to: "/products" },
     { label: "Cart", to: "/cart" },
-    { label: "Wishlist", to: "/wishlist" },
+    { label: "Wishlist", to: "/wish-list" },
   ],
   Company: [
     { label: "About Us", to: "/about" },

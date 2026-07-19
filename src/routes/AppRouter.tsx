@@ -9,6 +9,7 @@ import SignupPage from "../features/auth/SignupPage";
 import DesignSystemPage from "@/features/design-system/DesignSystemPage";
 import AboutPage from "@/features/about/AboutPage";
 import ContactPage from "@/features/contact/ContactPage";
+import WishListPage from "@/features/wishlist/WishListPage";
 
 const router = createBrowserRouter([
   {
@@ -19,6 +20,7 @@ const router = createBrowserRouter([
       { path: "products", element: <ProductListPage /> },
       { path: "products/:id", element: <ProductDetailPage /> },
       { path: "cart", element: <CartPage /> },
+      { path: "wish-list", element: <WishListPage /> },
       { path: "login", element: <LoginPage /> },
       { path: "signup", element: <SignupPage /> },
       { path: "about", element: <AboutPage /> },
