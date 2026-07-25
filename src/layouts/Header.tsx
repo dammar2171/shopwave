@@ -4,6 +4,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ModeToggle } from "@/components/mode-toggle";
+import { useAppSelector } from "@/hooks/reduxHooks";
 
 const navLinks = [
   { label: "Home", to: "/" },
@@ -14,13 +15,13 @@ const navLinks = [
   { label: "Design", to: "/design-System" },
 ];
 
-// Temporary hardcoded value — will come from Redux cartSlice on Day 5-ish
-const cartItemCount = 0;
-
 export function Header() {
+  const cartItems = useAppSelector((state) => state.cart.items);
+  const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
   return (
     <header className="sticky top-0 z-40 border-b bg-background/75">
-      <div className="mx-auto max-w-7xl flex items-center justify-between p-4">
+      <div className="mx-auto max-w-7xl flex items-center justify-between px-10 py-4">
         {/* Logo */}
         <Link to="/" className="font-bold text-3xl text-primary">
           SWave
@@ -80,12 +81,15 @@ export function Header() {
                   <Link
                     key={link.to}
                     to={link.to}
-                    className="text-base font-medium ms-4 py-1.5 px-1 hover:bg-accent-foreground hover:text-secondary"
+                    className="text-base t font-medium ms-4 py-1.5 px-1 hover:bg-accent-foreground hover:text-secondary"
                   >
                     {link.label}
                   </Link>
                 ))}
-                <Link to="/login" className="text-base ms-4 font-medium">
+                <Link
+                  to="/login"
+                  className=" bg-primary rounded-3xl text-center py-1.5 text-primary-foreground ms-4 font-medium hover:bg-primary/80"
+                >
                   Login
                 </Link>
               </nav>

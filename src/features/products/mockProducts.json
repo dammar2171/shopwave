@@ -1,0 +1,44 @@
+[
+  {
+    "id": "1",
+    "title": "Wireless Bluetooth Headphones",
+    "description": "Over-ear headphones with active noise cancellation and 30-hour battery life.",
+    "price": 59.99,
+    "originalPrice": 89.99,
+    "category": "Electronics",
+    "image": "https://placehold.co/400x400?text=Headphones",
+    "rating": 4.5,
+    "stock": 25
+  },
+  {
+    "id": "2",
+    "title": "Running Shoes",
+    "description": "Lightweight breathable running shoes for daily training.",
+    "price": 45.0,
+    "category": "Footwear",
+    "image": "https://placehold.co/400x400?text=Shoes",
+    "rating": 4.2,
+    "stock": 40
+  },
+  {
+    "id": "3",
+    "title": "Stainless Steel Water Bottle",
+    "description": "Insulated bottle keeps drinks cold for 24 hours or hot for 12.",
+    "price": 19.99,
+    "originalPrice": 24.99,
+    "category": "Home",
+    "image": "https://placehold.co/400x400?text=Bottle",
+    "rating": 4.8,
+    "stock": 100
+  },
+  {
+    "id": "4",
+    "title": "Cotton Crew Neck T-Shirt",
+    "description": "Soft, breathable everyday t-shirt, available in multiple colors.",
+    "price": 14.99,
+    "category": "Clothing",
+    "image": "https://placehold.co/400x400?text=T-Shirt",
+    "rating": 4.0,
+    "stock": 60
+  }
+]
