@@ -1,10 +1,20 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Menu, ShoppingCart } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { ModeToggle } from "@/components/mode-toggle";
-import { useAppSelector } from "@/hooks/reduxHooks";
+import { useAppSelector, useAppDispatch } from "@/hooks/reduxHooks";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { LogOut, User as UserIcon } from "lucide-react";
+import { logout } from "@/features/auth/authSlice";
 
 const navLinks = [
   { label: "Home", to: "/" },
@@ -16,8 +26,13 @@ const navLinks = [
 ];
 
 export function Header() {
+  const dispatch = useAppDispatch();
+  const isAuthenticated = useAppSelector((state)=> state.auth.isAuthenticated);
+  const user = useAppSelector((state)=> state.auth.user);
   const cartItems = useAppSelector((state) => state.cart.items);
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+
+  const navigate = useNavigate();
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/75">
@@ -59,15 +74,38 @@ export function Header() {
             )}
           </Link>
 
-          <Link
-            to="/login"
-            className={cn(
-              buttonVariants({ variant: "outline", size: "sm" }),
-              "hidden md:inline-flex",
-            )}
-          >
-            Login
-          </Link>
+          {isAuthenticated ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger className="rounded-full">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback>
+                    {user?.name?.charAt(0).toUpperCase() ?? "U"}
+                  </AvatarFallback>
+                </Avatar>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => navigate("/profile")}>
+                  <UserIcon className="h-4 w-4 mr-2" />
+                  Profile
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => dispatch(logout())}>
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Log Out
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : (
+            <Link
+              to="/login"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "hidden md:inline-flex",
+              )}
+            >
+              Login
+            </Link>
+          )}
 
           {/* Mobile menu trigger - hidden on desktop */}
           <Sheet>
