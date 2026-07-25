@@ -21,7 +21,7 @@ export function Header() {
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/75">
-      <div className="mx-auto max-w-7xl flex items-center justify-between px-10 py-4">
+      <div className="mx-auto max-w-7xl flex items-center justify-between p-4">
         {/* Logo */}
         <Link to="/" className="font-bold text-3xl text-primary">
           SWave

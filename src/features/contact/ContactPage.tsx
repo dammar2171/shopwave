@@ -209,7 +209,7 @@ function ContactPage() {
       </div>
 
       {/* FAQ */}
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <h2 className="text-2xl font-bold text-center mb-6">
           Frequently Asked Questions
         </h2>

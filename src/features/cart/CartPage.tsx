@@ -32,7 +32,7 @@ function CartPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl px-4 py-8 space-y-6">
+    <div className="mx-auto max-w-6xl px-4 py-8 space-y-6">
       <h1 className="text-2xl font-bold">Your Cart</h1>
 
       <div className="space-y-4">
