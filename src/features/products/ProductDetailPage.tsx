@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useAppDispatch } from "@/hooks/reduxHooks";
 import { addToCart } from "@/features/cart/cartSlice";
+import { WishlistButton } from "../wishlist/WishlistButton";
 
 function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -83,14 +84,17 @@ function ProductDetailPage() {
           )}
         </p>
 
-        <Button
-          size="lg"
-          className="w-full md:w-auto"
-          disabled={product.stock === 0}
-          onClick={() => dispatch(addToCart(product))}
-        >
-          Add to Cart
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            size="lg"
+            className="flex-1"
+            disabled={product.stock === 0}
+            onClick={() => dispatch(addToCart(product))}
+          >
+            Add to Cart
+          </Button>
+          <WishlistButton product={product} />
+        </div>
       </div>
     </div>
   );
