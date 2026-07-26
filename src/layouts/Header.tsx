@@ -27,8 +27,8 @@ const navLinks = [
 
 export function Header() {
   const dispatch = useAppDispatch();
-  const isAuthenticated = useAppSelector((state)=> state.auth.isAuthenticated);
-  const user = useAppSelector((state)=> state.auth.user);
+  const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const user = useAppSelector((state) => state.auth.user);
   const cartItems = useAppSelector((state) => state.cart.items);
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -124,12 +124,21 @@ export function Header() {
                     {link.label}
                   </Link>
                 ))}
-                <Link
-                  to="/login"
-                  className=" bg-primary rounded-3xl text-center py-1.5 text-primary-foreground ms-4 font-medium hover:bg-primary/80"
-                >
-                  Login
-                </Link>
+                {isAuthenticated ? (
+                  <Link
+                    to="/profile"
+                    className=" bg-primary rounded-3xl text-center py-1.5 text-primary-foreground ms-4 font-medium hover:bg-primary/80"
+                  >
+                    Profile
+                  </Link>
+                ) : (
+                  <Link
+                    to="/login"
+                    className=" bg-primary rounded-3xl text-center py-1.5 text-primary-foreground ms-4 font-medium hover:bg-primary/80"
+                  >
+                    Login
+                  </Link>
+                )}
               </nav>
             </SheetContent>
           </Sheet>
