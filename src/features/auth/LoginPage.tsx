@@ -33,7 +33,7 @@ function LoginPage() {
           id: "1",
           name: "Demo User",
           email: values.email,
-          role: "user",
+          role: "admin",
         },
         token: "fake-jwt-token",
       }),

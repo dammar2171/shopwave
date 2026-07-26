@@ -42,7 +42,11 @@ function ProfilePage() {
                 {label}
               </NavLink>
             ))}
-            <Button onClick={() => dispatch(logout())} className={"w-full md:mt-20"}>
+            <Button
+              variant={"destructive"}
+              onClick={() => dispatch(logout())}
+              className={"w-full md:mt-20"}
+            >
               <LogOut className="h-4 w-4" />
               Logout
             </Button>

@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { LogOut, User as UserIcon } from "lucide-react";
+import { LogOut, LayoutDashboard, User as UserIcon } from "lucide-react";
 import { logout } from "@/features/auth/authSlice";
 
 const navLinks = [
@@ -89,6 +89,15 @@ export function Header() {
                   Profile
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                {user?.role === "admin" && (
+                  <>
+                    <DropdownMenuItem onClick={() => navigate("/admin")}>
+                      <LayoutDashboard className="h-4 w-4 mr-2" />
+                      Dashboard
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                  </>
+                )}
                 <DropdownMenuItem onClick={() => dispatch(logout())}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Log Out
@@ -119,7 +128,7 @@ export function Header() {
                   <Link
                     key={link.to}
                     to={link.to}
-                    className="text-base t font-medium ms-4 py-1.5 px-1 hover:bg-accent-foreground hover:text-secondary"
+                    className="text-base t font-medium ms-4 py-1.5 px-1 hover:bg-secondary hover:text-primary"
                   >
                     {link.label}
                   </Link>

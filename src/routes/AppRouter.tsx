@@ -20,6 +20,9 @@ import ChangePassword from "../features/profile/ChangePassword";
 import OrderHistory from "../features/profile/OrderHistory";
 import OrderTracking from "../features/profile/OrderTracking";
 
+import AdminLayout from '../layouts/AdminLayout';
+import AdminDashboardPage from '../features/admin/AdminDashboardPage';
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -58,6 +61,19 @@ const router = createBrowserRouter([
       { path: "signup", element: <SignupPage /> },
     ],
   },
+
+  {
+  element: <ProtectedRoute requiredRole="admin" />,
+  children: [
+    {
+      path: "admin",
+      element: <AdminLayout />,
+      children: [
+        { index: true, element: <AdminDashboardPage /> },
+      ],
+    },
+  ],
+},
 ]);
 
 function AppRouter() {
