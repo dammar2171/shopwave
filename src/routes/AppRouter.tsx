@@ -9,9 +9,16 @@ import SignupPage from "../features/auth/SignupPage";
 import DesignSystemPage from "@/features/design-system/DesignSystemPage";
 import AboutPage from "@/features/about/AboutPage";
 import ContactPage from "@/features/contact/ContactPage";
+import AuthLayout from "@/layouts/AuthLayout";
+
+import ProtectedRoute from "./ProtectedRoute";
 import WishListPage from "@/features/wishlist/WishListPage";
 import CheckoutPage from "@/features/checkout/CheckoutPage";
-import AuthLayout from "@/layouts/AuthLayout";
+import ProfilePage from "../features/profile/ProfilePage";
+import ProfileOverview from "../features/profile/ProfileOverview";
+import ChangePassword from "../features/profile/ChangePassword";
+import OrderHistory from "../features/profile/OrderHistory";
+import OrderTracking from "../features/profile/OrderTracking";
 
 const router = createBrowserRouter([
   {
@@ -22,11 +29,26 @@ const router = createBrowserRouter([
       { path: "products", element: <ProductListPage /> },
       { path: "products/:id", element: <ProductDetailPage /> },
       { path: "cart", element: <CartPage /> },
-      { path: "checkout", element: <CheckoutPage /> },
-      { path: "wish-list", element: <WishListPage /> },
       { path: "about", element: <AboutPage /> },
       { path: "contact", element: <ContactPage /> },
       { path: "design-System", element: <DesignSystemPage /> },
+      {
+        element: <ProtectedRoute />,
+        children: [
+          { path: "checkout", element: <CheckoutPage /> },
+          { path: "wishlist", element: <WishListPage /> },
+          {
+            path: "profile",
+            element: <ProfilePage />,
+            children: [
+              { index: true, element: <ProfileOverview /> },
+              { path: "change-password", element: <ChangePassword /> },
+              { path: "orders", element: <OrderHistory /> },
+              { path: "orders/:id/tracking", element: <OrderTracking /> },
+            ],
+          },
+        ],
+      },
     ],
   },
   {

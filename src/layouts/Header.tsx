@@ -21,7 +21,7 @@ const navLinks = [
   { label: "Products", to: "/products" },
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
-  { label: "Wish List", to: "/wish-list" },
+  { label: "Wish List", to: "/wishlist" },
   { label: "Design", to: "/design-System" },
 ];
 
