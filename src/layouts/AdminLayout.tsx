@@ -11,10 +11,16 @@ import {
   Mail,
   Settings,
   Menu,
+  LogOutIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
-import { useAppSelector } from "@/hooks/reduxHooks";
+import { useAppSelector, useAppDispatch } from "@/hooks/reduxHooks";
+import { useNavigate } from "react-router-dom";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { LogOut } from "lucide-react";
+import { logout } from "@/features/auth/authSlice";
 
 const adminNavItems = [
   { label: "Dashboard", to: "/admin", icon: LayoutDashboard, end: true },
@@ -29,6 +35,14 @@ const adminNavItems = [
 ];
 
 function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+  const navigate = useNavigate();
+  const dispatch = useAppDispatch();
+  const user = useAppSelector((state) => state.auth.user);
+
+  function handleLogout() {
+    dispatch(logout());
+    navigate("/login");
+  }
   return (
     <>
       <Link to="/" className="block font-bold text-lg text-primary mb-6 px-2">
@@ -57,6 +71,34 @@ function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
           </NavLink>
         ))}
       </nav>
+      <div className="mt-4 pt-4 border-t space-y-2">
+        <button
+          onClick={() => navigate("/profile")}
+          className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent w-full text-left"
+        >
+          <Avatar className="h-8 w-8">
+            <AvatarFallback>
+              {user?.name?.charAt(0).toUpperCase() ?? "U"}
+            </AvatarFallback>
+          </Avatar>
+          <div className="min-w-0">
+            <p className="text-sm font-medium truncate">{user?.name}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {user?.email}
+            </p>
+          </div>
+        </button>
+
+        <Button
+          variant="ghost"
+          size="sm"
+          className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10"
+          onClick={handleLogout}
+        >
+          <LogOut className="h-4 w-4 mr-2" />
+          Log Out
+        </Button>
+      </div>
     </>
   );
 }

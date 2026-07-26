@@ -20,8 +20,9 @@ import ChangePassword from "../features/profile/ChangePassword";
 import OrderHistory from "../features/profile/OrderHistory";
 import OrderTracking from "../features/profile/OrderTracking";
 
-import AdminLayout from '../layouts/AdminLayout';
-import AdminDashboardPage from '../features/admin/AdminDashboardPage';
+import AdminLayout from "../layouts/AdminLayout";
+import AdminDashboardPage from "../features/admin/AdminDashboardPage";
+import AdminProductsPage from "@/features/admin/AdminProductsPage";
 
 const router = createBrowserRouter([
   {
@@ -63,17 +64,18 @@ const router = createBrowserRouter([
   },
 
   {
-  element: <ProtectedRoute requiredRole="admin" />,
-  children: [
-    {
-      path: "admin",
-      element: <AdminLayout />,
-      children: [
-        { index: true, element: <AdminDashboardPage /> },
-      ],
-    },
-  ],
-},
+    element: <ProtectedRoute requiredRole="admin" />,
+    children: [
+      {
+        path: "admin",
+        element: <AdminLayout />,
+        children: [
+          { index: true, element: <AdminDashboardPage /> },
+          { path: "products", element: <AdminProductsPage /> },
+        ],
+      },
+    ],
+  },
 ]);
 
 function AppRouter() {
