@@ -3,11 +3,24 @@ import { Link } from "react-router-dom";
 const categories = [
   {
     name: "Electronics",
-    image: "https://placehold.co/300x300?text=Electronics",
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT55HNIcm6xCyydC83vzGn0rgj3gsHySi8ZS65B_89NLpyJtXeV4bgkC5k_&s=10",
   },
-  { name: "Footwear", image: "https://placehold.co/300x300?text=Footwear" },
-  { name: "Home", image: "https://placehold.co/300x300?text=Home" },
-  { name: "Clothing", image: "https://placehold.co/300x300?text=Clothing" },
+  {
+    name: "Footwear",
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSEM7N6c9d3GGYx9RyIL4xx7BXwC9eT_78xxAciltA75w&s=10",
+  },
+  {
+    name: "Home",
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRUVwceMxLVh1mjoD0BbaPcYmmRjoSL5AGoLx5fdeWYdA&s=10",
+  },
+  {
+    name: "Clothing",
+    image:
+      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-fwT4dHJWxCxh7hg5qC9t0ZmyZZ66dW_gq9t_6Ux_Bw&s=10",
+  },
 ];
 
 export function CategorySection() {

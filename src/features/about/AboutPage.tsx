@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import { Target, Heart, Leaf, Users } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Card, CardContent } from "@/components/ui/card";
 
 const values = [
   {
@@ -56,7 +57,7 @@ function AboutPage() {
       {/* Story */}
       <section className="mx-auto max-w-6xl px-4 py-16 grid md:grid-cols-2 gap-10 items-center">
         <img
-          src="https://placehold.co/500x400?text=Our+Story"
+          src="https://thumbs.dreamstime.com/b/our-story-blue-business-symbols-circles-triangle-text-concept-image-293025030.jpg"
           alt="ShopWave team"
           className="rounded-2xl w-full object-cover shadow-lg"
         />
@@ -79,8 +80,11 @@ function AboutPage() {
       {/* Stats */}
       <section className="border-y bg-secondary/50">
         <div className="mx-auto max-w-6xl px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-          {stats.map((stat) => (
-            <div key={stat.label}>
+          {stats.map((stat, index) => (
+            <div
+              key={stat.label}
+              className={`${index < 3 ? "border-r-2" : ""}`}
+            >
               <p className="text-3xl font-bold text-primary">{stat.value}</p>
               <p className="text-sm text-muted-foreground mt-1">{stat.label}</p>
             </div>
@@ -95,13 +99,17 @@ function AboutPage() {
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {values.map(({ icon: Icon, title, desc }) => (
-            <div key={title} className="text-center space-y-3">
-              <div className="h-14 w-14 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
-                <Icon className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold">{title}</h3>
-              <p className="text-sm text-muted-foreground">{desc}</p>
-            </div>
+            <Card className="hover:bg-accent">
+              <CardContent>
+                <div key={title} className="text-center space-y-3">
+                  <div className="h-14 w-14 mx-auto rounded-full bg-primary/10 flex items-center justify-center">
+                    <Icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <h3 className="font-semibold">{title}</h3>
+                  <p className="text-sm text-muted-foreground">{desc}</p>
+                </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </section>
