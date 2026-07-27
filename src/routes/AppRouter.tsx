@@ -23,6 +23,7 @@ import OrderTracking from "../features/profile/OrderTracking";
 import AdminLayout from "../layouts/AdminLayout";
 import AdminDashboardPage from "../features/admin/AdminDashboardPage";
 import AdminProductsPage from "@/features/admin/AdminProductsPage";
+import AdminOrdersPage from "@/features/admin/AdminOrdersPage";
 
 const router = createBrowserRouter([
   {
@@ -72,6 +73,7 @@ const router = createBrowserRouter([
         children: [
           { index: true, element: <AdminDashboardPage /> },
           { path: "products", element: <AdminProductsPage /> },
+          { path: "orders", element: <AdminOrdersPage /> },
         ],
       },
     ],
