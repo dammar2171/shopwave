@@ -8,6 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { useAppDispatch } from "@/hooks/reduxHooks";
 import { addToCart } from "@/features/cart/cartSlice";
 import { WishlistButton } from "../wishlist/WishlistButton";
+import { ProductReviews } from "@/features/reviews/ProductReviews";
 
 function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -95,6 +96,9 @@ function ProductDetailPage() {
           </Button>
           <WishlistButton product={product} />
         </div>
+      </div>
+      <div className="mx-auto max-w-5xl px-4 pb-12">
+        <ProductReviews product={product} />
       </div>
     </div>
   );

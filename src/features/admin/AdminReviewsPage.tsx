@@ -11,8 +11,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import { mockReviews as initialReviews } from "./mockAdminData";
-import type { ProductReview, ReviewStatus } from "./types";
+import type { ProductReview, ReviewStatus } from "../reviews/types";
+import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
+import {
+  updateReviewStatus,
+  setStoreReply,
+} from "@/features/reviews/reviewsSlice";
 
 const statusVariant: Record<
   ReviewStatus,
@@ -49,7 +53,8 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 function AdminReviewsPage() {
-  const [reviews, setReviews] = useState<ProductReview[]>(initialReviews);
+  const dispatch = useAppDispatch();
+  const reviews = useAppSelector((state) => state.reviews.items);
   const [statusFilter, setStatusFilter] = useState<ReviewStatus | "all">("all");
   const [replyTarget, setReplyTarget] = useState<ProductReview | null>(null);
   const [replyText, setReplyText] = useState("");
@@ -59,7 +64,7 @@ function AdminReviewsPage() {
   );
 
   function updateStatus(id: string, status: ReviewStatus) {
-    setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, status } : r)));
+    dispatch(updateReviewStatus({ id, status }));
     toast.success(`Review ${status}.`);
   }
 
@@ -70,11 +75,7 @@ function AdminReviewsPage() {
 
   function submitReply() {
     if (!replyTarget) return;
-    setReviews((prev) =>
-      prev.map((r) =>
-        r.id === replyTarget.id ? { ...r, storeReply: replyText } : r,
-      ),
-    );
+    dispatch(setStoreReply({ id: replyTarget.id, reply: replyText }));
     toast.success("Reply saved.");
     setReplyTarget(null);
     setReplyText("");

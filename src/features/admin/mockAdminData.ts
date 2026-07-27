@@ -8,12 +8,12 @@ import type {
   AdminUser,
   CategoryBreakdown,
   CustomerMetric,
-  ProductReview,
   ContactMessage,
   StoreSettings, 
   ShippingSettings, 
   NotificationSettings
 } from "./types"
+import type { ProductReview } from "../reviews/types"
 
 // ── Dashboard ───────────────────────────────────────────
 
