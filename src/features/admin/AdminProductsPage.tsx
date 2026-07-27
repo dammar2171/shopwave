@@ -1,15 +1,15 @@
-import { useState } from "react"
-import { Plus, Pencil, Trash2, AlertTriangle, Search } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Badge } from "@/components/ui/badge"
-import { Card, CardContent } from "@/components/ui/card"
+import { useState } from "react";
+import { Plus, Pencil, Trash2, AlertTriangle, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -19,34 +19,36 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from "@/components/ui/alert-dialog"
-import toast from "react-hot-toast"
-import { ProductForm } from "./ProductForm"
-import { mockAdminProducts as initialProducts } from "./mockAdminData"
-import type { AdminProduct } from "./types"
-import type { ProductFormValues } from "./productSchema"
+} from "@/components/ui/alert-dialog";
+import toast from "react-hot-toast";
+import { ProductForm } from "./ProductForm";
+import { mockAdminProducts as initialProducts } from "./mockAdminData";
+import type { AdminProduct } from "./types";
+import type { ProductFormValues } from "./schemas/productSchema";
 
 function AdminProductsPage() {
-  const [products, setProducts] = useState<AdminProduct[]>(initialProducts)
-  const [searchQuery, setSearchQuery] = useState("")
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(null)
-  const [deleteTarget, setDeleteTarget] = useState<AdminProduct | null>(null)
+  const [products, setProducts] = useState<AdminProduct[]>(initialProducts);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(
+    null,
+  );
+  const [deleteTarget, setDeleteTarget] = useState<AdminProduct | null>(null);
 
   const filteredProducts = products.filter(
     (p) =>
       p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      p.sku.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+      p.sku.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
 
   function openAddDialog() {
-    setEditingProduct(null)
-    setDialogOpen(true)
+    setEditingProduct(null);
+    setDialogOpen(true);
   }
 
   function openEditDialog(product: AdminProduct) {
-    setEditingProduct(product)
-    setDialogOpen(true)
+    setEditingProduct(product);
+    setDialogOpen(true);
   }
 
   function handleSubmit(values: ProductFormValues) {
@@ -56,10 +58,10 @@ function AdminProductsPage() {
         prev.map((p) =>
           p.id === editingProduct.id
             ? { ...p, ...values, updatedAt: new Date().toISOString() }
-            : p
-        )
-      )
-      toast.success("Product updated successfully!")
+            : p,
+        ),
+      );
+      toast.success("Product updated successfully!");
     } else {
       // Add new
       const newProduct: AdminProduct = {
@@ -68,24 +70,26 @@ function AdminProductsPage() {
         rating: 0,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
-      }
-      setProducts((prev) => [newProduct, ...prev])
-      toast.success("Product added successfully!")
+      };
+      setProducts((prev) => [newProduct, ...prev]);
+      toast.success("Product added successfully!");
     }
-    setDialogOpen(false)
+    setDialogOpen(false);
   }
 
   function handleDelete() {
-    if (!deleteTarget) return
-    setProducts((prev) => prev.filter((p) => p.id !== deleteTarget.id))
-    toast.success("Product deleted.")
-    setDeleteTarget(null)
+    if (!deleteTarget) return;
+    setProducts((prev) => prev.filter((p) => p.id !== deleteTarget.id));
+    toast.success("Product deleted.");
+    setDeleteTarget(null);
   }
 
   function toggleActive(product: AdminProduct) {
     setProducts((prev) =>
-      prev.map((p) => (p.id === product.id ? { ...p, isActive: !p.isActive } : p))
-    )
+      prev.map((p) =>
+        p.id === product.id ? { ...p, isActive: !p.isActive } : p,
+      ),
+    );
   }
 
   return (
@@ -125,13 +129,16 @@ function AdminProductsPage() {
             <tbody>
               {filteredProducts.length === 0 && (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-muted-foreground">
+                  <td
+                    colSpan={7}
+                    className="p-8 text-center text-muted-foreground"
+                  >
                     No products found.
                   </td>
                 </tr>
               )}
               {filteredProducts.map((product) => {
-                const isLowStock = product.stock <= product.lowStockThreshold
+                const isLowStock = product.stock <= product.lowStockThreshold;
                 return (
                   <tr key={product.id} className="border-b last:border-0">
                     <td className="p-4">
@@ -141,11 +148,15 @@ function AdminProductsPage() {
                           alt={product.title}
                           className="h-10 w-10 rounded-md object-cover bg-muted"
                         />
-                        <span className="font-medium line-clamp-1">{product.title}</span>
+                        <span className="font-medium line-clamp-1">
+                          {product.title}
+                        </span>
                       </div>
                     </td>
                     <td className="p-4 text-muted-foreground">{product.sku}</td>
-                    <td className="p-4 text-muted-foreground">{product.category}</td>
+                    <td className="p-4 text-muted-foreground">
+                      {product.category}
+                    </td>
                     <td className="p-4">${product.price.toFixed(2)}</td>
                     <td className="p-4">
                       <div className="flex items-center gap-1">
@@ -159,7 +170,9 @@ function AdminProductsPage() {
                     </td>
                     <td className="p-4">
                       <button onClick={() => toggleActive(product)}>
-                        <Badge variant={product.isActive ? "secondary" : "outline"}>
+                        <Badge
+                          variant={product.isActive ? "secondary" : "outline"}
+                        >
                           {product.isActive ? "Active" : "Hidden"}
                         </Badge>
                       </button>
@@ -185,7 +198,7 @@ function AdminProductsPage() {
                       </div>
                     </td>
                   </tr>
-                )
+                );
               })}
             </tbody>
           </table>
@@ -209,24 +222,31 @@ function AdminProductsPage() {
       </Dialog>
 
       {/* Delete Confirmation */}
-      <AlertDialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+      <AlertDialog
+        open={!!deleteTarget}
+        onOpenChange={(open) => !open && setDeleteTarget(null)}
+      >
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete this product?</AlertDialogTitle>
             <AlertDialogDescription>
-              This will permanently delete "{deleteTarget?.title}". This action cannot be undone.
+              This will permanently delete "{deleteTarget?.title}". This action
+              cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete} className="bg-destructive text-white hover:bg-destructive/90">
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-white hover:bg-destructive/90"
+            >
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  )
+  );
 }
 
-export default AdminProductsPage
+export default AdminProductsPage;

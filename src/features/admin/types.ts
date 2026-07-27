@@ -118,3 +118,71 @@ export interface AdminUser {
   totalSpent: number
   joinedDate: string
 }
+
+// ── Analytics ───────────────────────────────────────────
+
+export interface CategoryBreakdown {
+  category: string
+  revenue: number
+  unitsSold: number
+}
+
+export interface CustomerMetric {
+  newCustomers: number
+  returningCustomers: number
+}
+
+export type DateRange = "7d" | "30d" | "90d"
+
+
+// ── Reviews ─────────────────────────────────────────────
+
+export type ReviewStatus = "pending" | "approved" | "rejected"
+
+export interface ProductReview {
+  id: string
+  productId: string
+  productTitle: string
+  productImage: string
+  customerName: string
+  rating: number // 1-5
+  comment: string
+  status: ReviewStatus
+  storeReply?: string
+  createdAt: string
+}
+
+// ── Contact Messages ────────────────────────────────────
+
+export interface ContactMessage {
+  id: string
+  name: string
+  email: string
+  subject: string
+  message: string
+  isRead: boolean
+  adminReply?: string
+  createdAt: string
+}
+
+// ── Settings ────────────────────────────────────────────
+
+export interface StoreSettings {
+  storeName: string
+  storeEmail: string
+  storePhone: string
+  storeAddress: string
+  currency: string
+}
+
+export interface ShippingSettings {
+  flatShippingRate: number
+  freeShippingThreshold: number
+  taxRatePercent: number
+}
+
+export interface NotificationSettings {
+  emailOnNewOrder: boolean
+  emailOnLowStock: boolean
+  emailOnNewReview: boolean
+}

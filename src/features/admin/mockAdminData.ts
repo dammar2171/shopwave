@@ -6,6 +6,13 @@ import type {
   Category,
   AdminOrder,
   AdminUser,
+  CategoryBreakdown,
+  CustomerMetric,
+  ProductReview,
+  ContactMessage,
+  StoreSettings, 
+  ShippingSettings, 
+  NotificationSettings
 } from "./types"
 
 // ── Dashboard ───────────────────────────────────────────
@@ -310,3 +317,129 @@ export const mockAdminUsers: AdminUser[] = [
     joinedDate: "2025-07-01",
   },
 ]
+
+
+export const mockCategoryBreakdown: CategoryBreakdown[] = [
+  { category: "Electronics", revenue: 9358.44, unitsSold: 156 },
+  { category: "Footwear", revenue: 2880.0, unitsSold: 64 },
+  { category: "Home", revenue: 1959.02, unitsSold: 98 },
+  { category: "Clothing", revenue: 630.5, unitsSold: 42 },
+]
+
+export const mockCustomerMetric: CustomerMetric = {
+  newCustomers: 34,
+  returningCustomers: 94,
+}
+
+// Extended revenue data for 30d/90d views (reusing pattern from mockRevenueData)
+export const mockRevenueData30d = Array.from({ length: 30 }, (_, i) => {
+  const date = new Date("2026-07-26")
+  date.setDate(date.getDate() - (29 - i))
+  return {
+    date: date.toISOString().split("T")[0],
+    revenue: Math.round((300 + Math.random() * 700) * 100) / 100,
+    orders: Math.floor(8 + Math.random() * 20),
+  }
+})
+
+
+export const mockReviews: ProductReview[] = [
+  {
+    id: "REV-001",
+    productId: "1",
+    productTitle: "Wireless Bluetooth Headphones",
+    productImage: "https://placehold.co/100x100?text=Headphones",
+    customerName: "Sita Rai",
+    rating: 5,
+    comment: "Amazing sound quality and the noise cancellation actually works great during my commute.",
+    status: "approved",
+    storeReply: "Thank you so much for the kind words, Sita!",
+    createdAt: "2026-07-15T10:00:00Z",
+  },
+  {
+    id: "REV-002",
+    productId: "1",
+    productTitle: "Wireless Bluetooth Headphones",
+    productImage: "https://placehold.co/100x100?text=Headphones",
+    customerName: "Hari Thapa",
+    rating: 2,
+    comment: "Battery drains faster than advertised. Disappointed after just 2 weeks of use.",
+    status: "pending",
+    createdAt: "2026-07-24T14:00:00Z",
+  },
+  {
+    id: "REV-003",
+    productId: "2",
+    productTitle: "Running Shoes",
+    productImage: "https://placehold.co/100x100?text=Shoes",
+    customerName: "Gita Shrestha",
+    rating: 4,
+    comment: "Comfortable for daily runs, true to size. Would buy again in a different color.",
+    status: "approved",
+    createdAt: "2026-07-20T09:00:00Z",
+  },
+  {
+    id: "REV-004",
+    productId: "3",
+    productTitle: "Stainless Steel Water Bottle",
+    productImage: "https://placehold.co/100x100?text=Bottle",
+    customerName: "Anonymous User",
+    rating: 1,
+    comment: "Buy this product now click here for free gift www.spam-link-example.com",
+    status: "pending",
+    createdAt: "2026-07-25T18:00:00Z",
+  },
+]
+
+
+export const mockMessages: ContactMessage[] = [
+  {
+    id: "MSG-001",
+    name: "Sita Rai",
+    email: "sita@example.com",
+    subject: "Order inquiry",
+    message: "Hi, I placed an order last week (ORD-1002) but haven't received a shipping update yet. Could you check the status for me?",
+    isRead: false,
+    createdAt: "2026-07-25T09:00:00Z",
+  },
+  {
+    id: "MSG-002",
+    name: "Hari Thapa",
+    email: "hari@example.com",
+    subject: "Product question",
+    message: "Does the Wireless Bluetooth Headphones come with a warranty? I couldn't find this info on the product page.",
+    isRead: true,
+    adminReply: "Hi Hari, yes! All our electronics come with a 1-year manufacturer warranty. Let us know if you need anything else.",
+    createdAt: "2026-07-22T14:00:00Z",
+  },
+  {
+    id: "MSG-003",
+    name: "Gita Shrestha",
+    email: "gita@example.com",
+    subject: "Return request",
+    message: "I'd like to return the item from my recent order. It arrived slightly damaged. Please advise on next steps.",
+    isRead: false,
+    createdAt: "2026-07-26T11:30:00Z",
+  },
+]
+
+
+export const mockStoreSettings: StoreSettings = {
+  storeName: "ShopWave",
+  storeEmail: "support@shopwave.com",
+  storePhone: "+977 980-0000000",
+  storeAddress: "Durbar Marg, Kathmandu, Nepal",
+  currency: "USD",
+}
+
+export const mockShippingSettings: ShippingSettings = {
+  flatShippingRate: 5.0,
+  freeShippingThreshold: 50.0,
+  taxRatePercent: 13,
+}
+
+export const mockNotificationSettings: NotificationSettings = {
+  emailOnNewOrder: true,
+  emailOnLowStock: true,
+  emailOnNewReview: false,
+}

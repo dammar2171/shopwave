@@ -24,6 +24,12 @@ import AdminLayout from "../layouts/AdminLayout";
 import AdminDashboardPage from "../features/admin/AdminDashboardPage";
 import AdminProductsPage from "@/features/admin/AdminProductsPage";
 import AdminOrdersPage from "@/features/admin/AdminOrdersPage";
+import AdminUsersPage from "@/features/admin/AdminUsersPage";
+import AdminCategoriesPage from "@/features/admin/AdminCategoriesPage";
+import AdminAnalyticsPage from "@/features/admin/AdminAnalyticsPage";
+import AdminReviewsPage from "@/features/admin/AdminReviewsPage";
+import AdminMessagesPage from "@/features/admin/AdminMessagesPage";
+import AdminSettingsPage from "@/features/admin/AdminSettingsPage";
 
 const router = createBrowserRouter([
   {
@@ -74,6 +80,12 @@ const router = createBrowserRouter([
           { index: true, element: <AdminDashboardPage /> },
           { path: "products", element: <AdminProductsPage /> },
           { path: "orders", element: <AdminOrdersPage /> },
+          { path: "users", element: <AdminUsersPage /> },
+          { path: "categories", element: <AdminCategoriesPage /> },
+          { path: "analytics", element: <AdminAnalyticsPage /> },
+          { path: "reviews", element: <AdminReviewsPage /> },
+          { path: "contacts", element: <AdminMessagesPage /> },
+          { path: "settings", element: <AdminSettingsPage /> },
         ],
       },
     ],

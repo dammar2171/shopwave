@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { productSchema, type ProductFormValues } from "./productSchema";
+import { productSchema, type ProductFormValues } from "./schemas/productSchema";
 import { mockCategories } from "./mockAdminData";
 
 interface ProductFormProps {
