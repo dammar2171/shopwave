@@ -1,12 +1,14 @@
 import { Link } from "react-router-dom";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { motion } from "framer-motion";
+import { Reveal } from "@/components/motion/Reveal";
 
 export function HeroSection() {
   return (
     <section className="relative overflow-hidden bg-secondary">
       <div className="mx-auto max-w-7xl px-4 py-10 md:py-16 grid md:grid-cols-2 gap-8 items-center">
-        <div className="space-y-6 text-center md:text-left">
+        <Reveal className="space-y-6 text-center md:text-left">
           <span className="inline-block text-sm font-medium text-primary bg-primary/10 px-3 py-1 rounded-full">
             New Season Arrivals
           </span>
@@ -30,15 +32,15 @@ export function HeroSection() {
               Browse Categories
             </Link>
           </div>
-        </div>
+        </Reveal>
 
-        <div className="relative">
+        <Reveal delay={0.5} className="relative">
           <img
             src="https://brightandfly.in/cdn/shop/files/navybluemensformallinenshirtsonsale.jpg?v=1722081634&width=1946"
             alt="Featured products"
             className="rounded-2xl w-full h-100 object-cover shadow-lg"
           />
-        </div>
+        </Reveal>
       </div>
     </section>
   );

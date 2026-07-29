@@ -6,6 +6,8 @@ import { Separator } from "@/components/ui/separator";
 import { PriceTag } from "@/components/price-tag";
 import { Minus, Plus, Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Reveal } from "@/components/motion/Reveal";
+import { RevealGroup ,RevealItem} from "@/components/motion/RevealGroup";
 
 function CartPage() {
   const dispatch = useAppDispatch();
@@ -19,7 +21,7 @@ function CartPage() {
 
   if (items.length === 0) {
     return (
-      <div className="text-center py-16 px-4">
+      <Reveal className="text-center py-16 px-4">
         <p className="text-muted-foreground mb-4">Your cart is empty.</p>
         <Link
           to="/products"
@@ -27,17 +29,17 @@ function CartPage() {
         >
           Browse Products
         </Link>
-      </div>
+      </Reveal>
     );
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 space-y-6">
+    <Reveal className="mx-auto max-w-6xl px-4 py-8 space-y-6">
       <h1 className="text-2xl font-bold">Your Cart</h1>
 
-      <div className="space-y-4">
+      <RevealGroup className="space-y-4">
         {items.map((item) => (
-          <div key={item.product.id} className="flex gap-4 items-center">
+          <RevealItem key={item.product.id} className="flex gap-4 items-center">
             <img
               src={item.product.image}
               alt={item.product.title}
@@ -99,9 +101,9 @@ function CartPage() {
               <Trash2 className="h-4 w-4" />
               <span className="sr-only">Remove item</span>
             </Button>
-          </div>
+          </RevealItem>
         ))}
-      </div>
+      </RevealGroup>
 
       <Separator />
 
@@ -117,7 +119,7 @@ function CartPage() {
       >
         Proceed to Checkout
       </Button>
-    </div>
+    </Reveal>
   );
 }
 

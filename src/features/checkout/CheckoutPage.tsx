@@ -17,6 +17,7 @@ import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 import { clearCart } from "@/features/cart/cartSlice";
 import { checkoutSchema, type CheckoutFormValues } from "./checkoutSchema";
 import { Card, CardContent } from "@/components/ui/card";
+import { Reveal } from "@/components/motion/Reveal";
 function CheckoutPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
@@ -58,7 +59,7 @@ function CheckoutPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8 grid md:grid-cols-2 gap-8">
+    <Reveal className="mx-auto max-w-6xl px-4 py-8 grid md:grid-cols-2 gap-8">
       {/* Form */}
       <div>
         <h1 className="text-xl font-bold mb-4">Shipping Details</h1>
@@ -192,7 +193,7 @@ function CheckoutPage() {
           <span>${subtotal.toFixed(2)}</span>
         </div>
       </div>
-    </div>
+    </Reveal>
   );
 }
 

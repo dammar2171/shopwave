@@ -1,34 +1,42 @@
-import { Link } from "react-router-dom"
-import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks"
-import { removeFromWishlist } from "./wishlistSlice"
-import { addToCart } from "@/features/cart/cartSlice"
-import { Button, buttonVariants } from "@/components/ui/button"
-import { PriceTag } from "@/components/price-tag"
-import { Trash2, ShoppingCart } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { Link } from "react-router-dom";
+import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
+import { removeFromWishlist } from "./wishlistSlice";
+import { addToCart } from "@/features/cart/cartSlice";
+import { Button, buttonVariants } from "@/components/ui/button";
+import { PriceTag } from "@/components/price-tag";
+import { Trash2, ShoppingCart } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Reveal } from "@/components/motion/Reveal";
+import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 
 function WishlistPage() {
-  const dispatch = useAppDispatch()
-  const items = useAppSelector((state) => state.wishlist.items)
+  const dispatch = useAppDispatch();
+  const items = useAppSelector((state) => state.wishlist.items);
 
   if (items.length === 0) {
     return (
-      <div className="text-center py-16 px-4">
+      <Reveal className="text-center py-16 px-4">
         <p className="text-muted-foreground mb-4">Your wishlist is empty.</p>
-        <Link to="/products" className={cn(buttonVariants({ variant: "default" }))}>
+        <Link
+          to="/products"
+          className={cn(buttonVariants({ variant: "default" }))}
+        >
           Browse Products
         </Link>
-      </div>
-    )
+      </Reveal>
+    );
   }
 
   return (
-    <div className="mx-auto max-w-6xl px-4 py-8">
+    <Reveal className="mx-auto max-w-6xl px-4 py-8">
       <h1 className="text-2xl font-bold mb-6">Your Wishlist</h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+      <RevealGroup className="grid grid-cols-2 md:grid-cols-3 gap-6">
         {items.map((product) => (
-          <div key={product.id} className="border rounded-lg overflow-hidden">
+          <RevealItem
+            key={product.id}
+            className="border rounded-lg overflow-hidden"
+          >
             <Link to={`/products/${product.id}`}>
               <div className="aspect-square overflow-hidden bg-muted">
                 <img
@@ -47,7 +55,10 @@ function WishlistPage() {
                 {product.title}
               </Link>
 
-              <PriceTag price={product.price} originalPrice={product.originalPrice} />
+              <PriceTag
+                price={product.price}
+                originalPrice={product.originalPrice}
+              />
 
               <div className="flex gap-2 pt-1">
                 <Button
@@ -69,11 +80,11 @@ function WishlistPage() {
                 </Button>
               </div>
             </div>
-          </div>
+          </RevealItem>
         ))}
-      </div>
-    </div>
-  )
+      </RevealGroup>
+    </Reveal>
+  );
 }
 
-export default WishlistPage
+export default WishlistPage;

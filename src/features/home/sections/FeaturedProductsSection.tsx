@@ -4,6 +4,7 @@ import { ProductCard } from "@/features/products/ProductCard";
 import { ProductCardSkeleton } from "@/components/ui/product-card-skeleton";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { RevealItem, RevealGroup } from "@/components/motion/RevealGroup";
 
 export function FeaturedProductsSection() {
   const { data: products, isLoading } = useGetProductsQuery();
@@ -20,19 +21,21 @@ export function FeaturedProductsSection() {
         </Link>
       </div>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <RevealGroup className="grid grid-cols-2 md:grid-cols-4 gap-6">
         {isLoading &&
           Array.from({ length: 4 }).map((_, i) => (
-            <ProductCardSkeleton key={i} />
+            <RevealItem key={i}>
+              <ProductCardSkeleton />
+            </RevealItem>
           ))}
 
         {!isLoading &&
-          products
-            ?.slice(0, 4)
-            .map((product) => (
-              <ProductCard key={product.id} product={product} />
-            ))}
-      </div>
+          products?.slice(0, 4).map((product) => (
+            <RevealItem key={product.id}>
+              <ProductCard product={product} />
+            </RevealItem>
+          ))}
+      </RevealGroup>
     </section>
   );
 }

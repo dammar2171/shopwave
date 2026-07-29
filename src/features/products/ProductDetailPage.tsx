@@ -9,6 +9,7 @@ import { useAppDispatch } from "@/hooks/reduxHooks";
 import { addToCart } from "@/features/cart/cartSlice";
 import { WishlistButton } from "../wishlist/WishlistButton";
 import { ProductReviews } from "@/features/reviews/ProductReviews";
+import { Reveal } from "@/components/motion/Reveal";
 
 function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -45,16 +46,16 @@ function ProductDetailPage() {
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 grid md:grid-cols-2 gap-8">
       {/* Image */}
-      <div className="aspect-square overflow-hidden rounded-lg bg-muted">
+      <Reveal className="aspect-square overflow-hidden rounded-lg bg-muted">
         <img
           src={product.image}
           alt={product.title}
           className="w-full h-full object-cover"
         />
-      </div>
+      </Reveal>
 
       {/* Details */}
-      <div className="space-y-4">
+      <Reveal delay={0.15} className="space-y-4">
         <div>
           <Badge variant="secondary">{product.category}</Badge>
           <h1 className="text-2xl font-bold mt-2">{product.title}</h1>
@@ -96,10 +97,10 @@ function ProductDetailPage() {
           </Button>
           <WishlistButton product={product} />
         </div>
-      </div>
-      <div className="mx-auto max-w-5xl px-4 pb-12">
+      </Reveal>
+      <Reveal delay={0.3} className="mx-auto max-w-5xl px-4 pb-12">
         <ProductReviews product={product} />
-      </div>
+      </Reveal>
     </div>
   );
 }

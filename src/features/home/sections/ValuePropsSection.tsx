@@ -1,5 +1,5 @@
 import { Truck, ShieldCheck, RefreshCw, Headphones } from "lucide-react";
-
+import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 const values = [
   { icon: Truck, title: "Free Shipping", desc: "On orders over $50" },
   {
@@ -14,9 +14,9 @@ const values = [
 export function ValuePropsSection() {
   return (
     <section className="border-y bg-secondary/50">
-      <div className="mx-auto max-w-7xl px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
+      <RevealGroup className="mx-auto max-w-7xl px-4 py-12 grid grid-cols-2 md:grid-cols-4 gap-8">
         {values.map(({ icon: Icon, title, desc }, index) => (
-          <div
+          <RevealItem
             key={title}
             className={`flex flex-col items-center text-center gap-2 ${index < 3 ? "border-r-2" : ""}`}
           >
@@ -25,9 +25,9 @@ export function ValuePropsSection() {
             </div>
             <p className="font-semibold text-sm">{title}</p>
             <p className="text-xs text-muted-foreground">{desc}</p>
-          </div>
+          </RevealItem>
         ))}
-      </div>
+      </RevealGroup>
     </section>
   );
 }
