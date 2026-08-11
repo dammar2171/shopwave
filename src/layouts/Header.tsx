@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { LogOut, LayoutDashboard, User as UserIcon } from "lucide-react";
 import { logout } from "@/features/auth/authSlice";
+import { useLogoutMutation } from "@/features/auth/authApi";
 
 const navLinks = [
   { label: "Home", to: "/" },
@@ -22,7 +23,6 @@ const navLinks = [
   { label: "About", to: "/about" },
   { label: "Contact", to: "/contact" },
   { label: "Wish List", to: "/wishlist" },
-  { label: "Design", to: "/design-System" },
 ];
 
 export function Header() {
@@ -33,6 +33,18 @@ export function Header() {
   const cartItemCount = cartItems.reduce((sum, item) => sum + item.quantity, 0);
 
   const navigate = useNavigate();
+  const [logoutMutation] = useLogoutMutation();
+
+  async function handleLogout() {
+    try {
+      await logoutMutation().unwrap();
+    } catch {
+      // even if the API call fails, still clear local state
+    } finally {
+      dispatch(logout());
+      navigate("/");
+    }
+  }
 
   return (
     <header className="sticky top-0 z-40 border-b bg-background/75">
@@ -89,7 +101,7 @@ export function Header() {
                   Profile
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                {user?.role === "admin" && (
+                {user?.role === "ADMIN" && (
                   <>
                     <DropdownMenuItem onClick={() => navigate("/admin")}>
                       <LayoutDashboard className="h-4 w-4 mr-2" />
@@ -98,7 +110,7 @@ export function Header() {
                     <DropdownMenuSeparator />
                   </>
                 )}
-                <DropdownMenuItem onClick={() => dispatch(logout())}>
+                <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="h-4 w-4 mr-2" />
                   Log Out
                 </DropdownMenuItem>

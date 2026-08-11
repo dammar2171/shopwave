@@ -14,32 +14,35 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAppDispatch } from "@/hooks/reduxHooks";
 import { setCredentials } from "./authSlice";
+import { useLoginMutation } from "./authApi";
 import { loginSchema, type LoginFormValues } from "./authSchema";
 
 function LoginPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const [login, { isLoading }] = useLoginMutation();
 
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
 
-  function onSubmit(values: LoginFormValues) {
-    // No backend yet — simulate a successful login
-    dispatch(
-      setCredentials({
-        user: {
-          id: "1",
-          name: "Demo User",
-          email: values.email,
-          role: "admin",
-        },
-        token: "fake-jwt-token",
-      }),
-    );
-    toast.success("Logged in successfully!");
-    navigate("/");
+  async function onSubmit(values: LoginFormValues) {
+    try {
+      const response = await login(values).unwrap();
+
+      dispatch(
+        setCredentials({
+          user: response.data.user,
+          accessToken: response.data.accessToken,
+        }),
+      );
+
+      toast.success("Logged in successfully!");
+      navigate("/");
+    } catch (error: any) {
+      toast.error(error?.data?.message ?? "Login failed. Please try again.");
+    }
   }
 
   return (
@@ -79,8 +82,8 @@ function LoginPage() {
             )}
           />
 
-          <Button type="submit" className="w-full">
-            Log In
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Logging in..." : "Log In"}
           </Button>
         </form>
       </Form>

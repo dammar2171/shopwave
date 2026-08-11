@@ -7,7 +7,8 @@ import { cn } from "@/lib/utils";
 import { RevealItem, RevealGroup } from "@/components/motion/RevealGroup";
 
 export function FeaturedProductsSection() {
-  const { data: products, isLoading } = useGetProductsQuery();
+  const { data: response, isLoading } = useGetProductsQuery();
+  const products = response?.data ?? [];
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-16">
@@ -30,7 +31,7 @@ export function FeaturedProductsSection() {
           ))}
 
         {!isLoading &&
-          products?.slice(0, 4).map((product) => (
+          products.slice(0, 4).map((product) => (
             <RevealItem key={product.id}>
               <ProductCard product={product} />
             </RevealItem>

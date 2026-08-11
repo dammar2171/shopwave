@@ -2,7 +2,6 @@ import { Link } from "react-router-dom";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { buttonVariants } from "@/components/ui/button";
 import { PriceTag } from "@/components/price-tag";
-import { WishlistButton } from "@/features/wishlist/WishlistButton";
 import { cn } from "@/lib/utils";
 import type { Product } from "./types";
 
@@ -29,20 +28,22 @@ export function ProductCard({ product }: ProductCardProps) {
             {product.title}
           </h3>
         </Link>
-        <p className="text-xs text-muted-foreground">{product.category}</p>
+        <p className="text-xs text-muted-foreground">{product.category.name}</p>
       </CardContent>
 
       <CardFooter className="p-4 pt-0 flex items-center justify-between">
-        <PriceTag price={product.price} originalPrice={product.originalPrice} />
-        <div className="flex items-center gap-1">
-          <WishlistButton product={product} />
-          <Link
-            to={`/products/${product.id}`}
-            className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
-          >
-            View
-          </Link>
-        </div>
+        <PriceTag
+          price={Number(product.price)}
+          originalPrice={
+            product.originalPrice ? Number(product.originalPrice) : undefined
+          }
+        />
+        <Link
+          to={`/products/${product.id}`}
+          className={cn(buttonVariants({ variant: "outline", size: "sm" }))}
+        >
+          View
+        </Link>
       </CardFooter>
     </Card>
   );

@@ -1,16 +1,19 @@
-import { configureStore, type Middleware } from '@reduxjs/toolkit'
-import { productsApi } from '@/features/products/productsApi'
-import cartReducer from '@/features/cart/cartSlice';
-import wishlistReducer from '@/features/wishlist/wishlistSlice'
-import authReducer from '@/features/auth/authSlice'
-import reviewsReducer from '../features/reviews/reviewsSlice'
+import { configureStore } from '@reduxjs/toolkit'
+import { baseApi } from '@/services/apiClient'
+import authReducer from '../features/auth/authSlice'
+import cartReducer from '../features/cart/cartSlice'
+import wishlistReducer from '../features/wishlist/wishlistSlice'
+
 export const store = configureStore({
   reducer: {
-    [productsApi.reducerPath]: productsApi.reducer,cart: cartReducer,wishlist: wishlistReducer,auth: authReducer,reviews:reviewsReducer,
+    [baseApi.reducerPath]: baseApi.reducer,
+    auth: authReducer,
+    cart: cartReducer,
+    wishlist: wishlistReducer,
   },
   middleware: (getDefaultMiddleware) =>
-    getDefaultMiddleware().concat(productsApi.middleware as Middleware),
+    getDefaultMiddleware().concat(baseApi.middleware),
 })
 
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
+export type RootState = ReturnType<typeof store.getState>
+export type AppDispatch = typeof store.dispatch

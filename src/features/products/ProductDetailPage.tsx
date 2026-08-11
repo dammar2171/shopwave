@@ -13,8 +13,9 @@ import { Reveal } from "@/components/motion/Reveal";
 
 function ProductDetailPage() {
   const { id } = useParams<{ id: string }>();
-  const { data: product, isLoading, isError } = useGetProductByIdQuery(id!);
+  const { data: response, isLoading, isError } = useGetProductByIdQuery(id!);
   const dispatch = useAppDispatch();
+  const product = response?.data;
 
   if (isLoading) {
     return (
@@ -43,9 +44,13 @@ function ProductDetailPage() {
     );
   }
 
+  const price = Number(product.price);
+  const originalPrice = product.originalPrice
+    ? Number(product.originalPrice)
+    : undefined;
+
   return (
     <div className="mx-auto max-w-5xl px-4 py-8 grid md:grid-cols-2 gap-8">
-      {/* Image */}
       <Reveal className="aspect-square overflow-hidden rounded-lg bg-muted">
         <img
           src={product.image}
@@ -54,19 +59,18 @@ function ProductDetailPage() {
         />
       </Reveal>
 
-      {/* Details */}
       <Reveal delay={0.15} className="space-y-4">
         <div>
-          <Badge variant="secondary">{product.category}</Badge>
+          <Badge variant="secondary">{product.category.name}</Badge>
           <h1 className="text-2xl font-bold mt-2">{product.title}</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Rating: {product.rating} / 5
+            Rating: {product.rating.toFixed(1)} / 5
           </p>
         </div>
 
         <PriceTag
-          price={product.price}
-          originalPrice={product.originalPrice}
+          price={price}
+          originalPrice={originalPrice}
           className="text-xl"
         />
 
@@ -91,14 +95,18 @@ function ProductDetailPage() {
             size="lg"
             className="flex-1"
             disabled={product.stock === 0}
-            onClick={() => dispatch(addToCart(product))}
+            onClick={() => dispatch(addToCart({ ...product, price }))}
           >
             Add to Cart
           </Button>
           <WishlistButton product={product} />
         </div>
       </Reveal>
-      <Reveal delay={0.3} className="mx-auto max-w-5xl px-4 pb-12">
+
+      <Reveal
+        delay={0.3}
+        className="mx-auto max-w-5xl px-4 pb-12 md:col-span-2"
+      >
         <ProductReviews product={product} />
       </Reveal>
     </div>

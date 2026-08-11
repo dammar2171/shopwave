@@ -19,9 +19,11 @@ export function ProductReviews({ product }: ProductReviewsProps) {
   const user = useAppSelector((state) => state.auth.user);
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
-  const allReviews = useAppSelector((state) => state.reviews.items);
+  const allReviews = useAppSelector(
+    (state) => (state as any).reviews?.items ?? [],
+  ) as any[];
   const approvedReviews = allReviews.filter(
-    (r) => r.productId === product.id && r.status === "approved",
+    (r: any) => r.productId === product.id && r.status === "approved",
   );
 
   const [rating, setRating] = useState(0);

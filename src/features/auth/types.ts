@@ -1,4 +1,4 @@
-export type UserRole = "user" | "admin"
+export type UserRole = "USER" | "ADMIN"
 
 export interface User {
   id: string
@@ -9,6 +9,6 @@ export interface User {
 
 export interface AuthState {
   user: User | null
-  token: string | null
+  accessToken: string | null
   isAuthenticated: boolean
 }

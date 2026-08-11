@@ -14,32 +14,41 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAppDispatch } from "@/hooks/reduxHooks";
 import { setCredentials } from "./authSlice";
+import { useRegisterMutation } from "./authApi";
 import { registerSchema, type RegisterFormValues } from "./authSchema";
 
 function SignupPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const [register, { isLoading }] = useRegisterMutation();
 
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
     defaultValues: { name: "", email: "", password: "", confirmPassword: "" },
   });
 
-  function onSubmit(values: RegisterFormValues) {
-    // No backend yet — simulate successful registration
-    dispatch(
-      setCredentials({
-        user: {
-          id: "1",
-          name: values.name,
-          email: values.email,
-          role: "user",
-        },
-        token: "fake-jwt-token",
-      }),
-    );
-    toast.success("Account created successfully!");
-    navigate("/");
+  async function onSubmit(values: RegisterFormValues) {
+    try {
+      const response = await register({
+        name: values.name,
+        email: values.email,
+        password: values.password,
+      }).unwrap();
+
+      dispatch(
+        setCredentials({
+          user: response.data.user,
+          accessToken: response.data.accessToken,
+        }),
+      );
+
+      toast.success("Account created successfully!");
+      navigate("/");
+    } catch (error: any) {
+      toast.error(
+        error?.data?.message ?? "Registration failed. Please try again.",
+      );
+    }
   }
 
   return (
@@ -107,8 +116,8 @@ function SignupPage() {
             )}
           />
 
-          <Button type="submit" className="w-full">
-            Sign Up
+          <Button type="submit" className="w-full" disabled={isLoading}>
+            {isLoading ? "Creating account..." : "Sign Up"}
           </Button>
         </form>
       </Form>

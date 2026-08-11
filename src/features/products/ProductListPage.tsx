@@ -7,11 +7,20 @@ import { ProductFilters } from "./ProductFilters";
 import { RevealGroup, RevealItem } from "@/components/motion/RevealGroup";
 
 function ProductListPage() {
-  const { data: products, isLoading, isError } = useGetProductsQuery();
   const [searchParams, setSearchParams] = useSearchParams();
-
   const [searchQuery, setSearchQuery] = useState("");
   const selectedCategory = searchParams.get("category") ?? "All";
+
+  const {
+    data: response,
+    isLoading,
+    isError,
+  } = useGetProductsQuery({
+    search: searchQuery || undefined,
+    category: selectedCategory !== "All" ? selectedCategory : undefined,
+  });
+
+  const products = response?.data ?? [];
 
   function handleCategoryChange(category: string) {
     if (category === "All") {
@@ -22,21 +31,9 @@ function ProductListPage() {
     setSearchParams(searchParams);
   }
 
-  const filteredProducts = useMemo(() => {
-    if (!products) return [];
-    return products.filter((product) => {
-      const matchesSearch = product.title
-        .toLowerCase()
-        .includes(searchQuery.toLowerCase());
-      const matchesCategory =
-        selectedCategory === "All" || product.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    });
-  }, [products, searchQuery, selectedCategory]);
-
   return (
     <div className="mx-auto max-w-7xl px-4 py-8">
-      <h1 className="text-2xl font-bold mb-6 md:text-center">All Products</h1>
+      <h1 className="text-2xl font-bold mb-6">All Products</h1>
 
       <ProductFilters
         searchQuery={searchQuery}
@@ -61,7 +58,7 @@ function ProductListPage() {
         </div>
       )}
 
-      {!isLoading && !isError && filteredProducts.length === 0 && (
+      {!isLoading && !isError && products.length === 0 && (
         <div className="text-center py-16">
           <p className="text-muted-foreground">
             No products match your search or filter.
@@ -69,9 +66,9 @@ function ProductListPage() {
         </div>
       )}
 
-      {!isLoading && !isError && filteredProducts.length > 0 && (
-        <RevealGroup className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {filteredProducts.map((product) => (
+      {!isLoading && !isError && products.length > 0 && (
+        <RevealGroup className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {products.map((product) => (
             <RevealItem key={product.id}>
               <ProductCard product={product} />
             </RevealItem>

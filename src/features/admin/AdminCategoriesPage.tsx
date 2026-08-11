@@ -34,20 +34,23 @@ import {
 import {
   categorySchema,
   type CategoryFormValues,
-} from "./schemas/categorySchema";
-import { mockCategories as initialCategories } from "./mockAdminData";
-import type { Category } from "./types";
-
-function slugify(name: string) {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-}
+} from "@/features/categories/categorySchema";
+import {
+  useGetCategoriesQuery,
+  useCreateCategoryMutation,
+  useUpdateCategoryMutation,
+  useDeleteCategoryMutation,
+} from "@/features/categories/categoriesApi";
+import type { Category } from "@/features/categories/types";
 
 function AdminCategoriesPage() {
-  const [categories, setCategories] = useState<Category[]>(initialCategories);
+  const { data: response, isLoading } = useGetCategoriesQuery();
+  const [createCategory] = useCreateCategoryMutation();
+  const [updateCategory] = useUpdateCategoryMutation();
+  const [deleteCategory] = useDeleteCategoryMutation();
+
+  const categories = response?.data ?? [];
+
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
@@ -69,46 +72,35 @@ function AdminCategoriesPage() {
     setDialogOpen(true);
   }
 
-  function onSubmit(values: CategoryFormValues) {
-    const slug = slugify(values.name);
-
-    // Prevent duplicate names/slugs
-    const isDuplicate = categories.some(
-      (c) => c.slug === slug && c.id !== editingCategory?.id,
-    );
-    if (isDuplicate) {
-      form.setError("name", {
-        message: "A category with this name already exists",
-      });
-      return;
+  async function onSubmit(values: CategoryFormValues) {
+    try {
+      if (editingCategory) {
+        await updateCategory({
+          id: editingCategory.id,
+          name: values.name,
+        }).unwrap();
+        toast.success("Category updated successfully!");
+      } else {
+        await createCategory({ name: values.name }).unwrap();
+        toast.success("Category added successfully!");
+      }
+      setDialogOpen(false);
+    } catch (error: any) {
+      const message = error?.data?.message ?? "Something went wrong";
+      form.setError("name", { message });
     }
-
-    if (editingCategory) {
-      setCategories((prev) =>
-        prev.map((c) =>
-          c.id === editingCategory.id ? { ...c, name: values.name, slug } : c,
-        ),
-      );
-      toast.success("Category updated successfully!");
-    } else {
-      const newCategory: Category = {
-        id: crypto.randomUUID(),
-        name: values.name,
-        slug,
-        productCount: 0,
-      };
-      setCategories((prev) => [...prev, newCategory]);
-      toast.success("Category added successfully!");
-    }
-
-    setDialogOpen(false);
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!deleteTarget) return;
-    setCategories((prev) => prev.filter((c) => c.id !== deleteTarget.id));
-    toast.success("Category deleted.");
-    setDeleteTarget(null);
+    try {
+      await deleteCategory(deleteTarget.id).unwrap();
+      toast.success("Category deleted.");
+      setDeleteTarget(null);
+    } catch (error: any) {
+      toast.error(error?.data?.message ?? "Failed to delete category");
+      setDeleteTarget(null);
+    }
   }
 
   return (
@@ -133,7 +125,17 @@ function AdminCategoriesPage() {
               </tr>
             </thead>
             <tbody>
-              {categories.length === 0 && (
+              {isLoading && (
+                <tr>
+                  <td
+                    colSpan={4}
+                    className="p-8 text-center text-muted-foreground"
+                  >
+                    Loading...
+                  </td>
+                </tr>
+              )}
+              {!isLoading && categories.length === 0 && (
                 <tr>
                   <td
                     colSpan={4}
@@ -143,49 +145,51 @@ function AdminCategoriesPage() {
                   </td>
                 </tr>
               )}
-              {categories.map((category) => (
-                <tr key={category.id} className="border-b last:border-0">
-                  <td className="p-4 font-medium">{category.name}</td>
-                  <td className="p-4 text-muted-foreground">
-                    /{category.slug}
-                  </td>
-                  <td className="p-4">
-                    <Badge variant="secondary">{category.productCount}</Badge>
-                  </td>
-                  <td className="p-4">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8"
-                        onClick={() => openEditDialog(category)}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="h-8 w-8 text-muted-foreground hover:text-destructive"
-                        disabled={category.productCount > 0}
-                        title={
-                          category.productCount > 0
-                            ? "Cannot delete a category with products assigned"
-                            : "Delete category"
-                        }
-                        onClick={() => setDeleteTarget(category)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+              {categories.map((category) => {
+                const productCount = category._count?.products ?? 0;
+                return (
+                  <tr key={category.id} className="border-b last:border-0">
+                    <td className="p-4 font-medium">{category.name}</td>
+                    <td className="p-4 text-muted-foreground">
+                      /{category.slug}
+                    </td>
+                    <td className="p-4">
+                      <Badge variant="secondary">{productCount}</Badge>
+                    </td>
+                    <td className="p-4">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8"
+                          onClick={() => openEditDialog(category)}
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                          disabled={productCount > 0}
+                          title={
+                            productCount > 0
+                              ? "Cannot delete a category with products assigned"
+                              : "Delete category"
+                          }
+                          onClick={() => setDeleteTarget(category)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </CardContent>
       </Card>
 
-      {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-sm">
           <DialogHeader>
@@ -218,7 +222,7 @@ function AdminCategoriesPage() {
                 >
                   Cancel
                 </Button>
-                <Button type="submit">
+                <Button type="submit" disabled={form.formState.isSubmitting}>
                   {editingCategory ? "Save Changes" : "Add Category"}
                 </Button>
               </div>
@@ -227,7 +231,6 @@ function AdminCategoriesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}

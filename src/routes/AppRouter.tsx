@@ -6,7 +6,6 @@ import ProductDetailPage from "../features/products/ProductDetailPage";
 import CartPage from "../features/cart/CartPage";
 import LoginPage from "../features/auth/LoginPage";
 import SignupPage from "../features/auth/SignupPage";
-import DesignSystemPage from "@/features/design-system/DesignSystemPage";
 import AboutPage from "@/features/about/AboutPage";
 import ContactPage from "@/features/contact/ContactPage";
 import AuthLayout from "@/layouts/AuthLayout";
@@ -42,7 +41,6 @@ const router = createBrowserRouter([
       { path: "cart", element: <CartPage /> },
       { path: "about", element: <AboutPage /> },
       { path: "contact", element: <ContactPage /> },
-      { path: "design-System", element: <DesignSystemPage /> },
       {
         element: <ProtectedRoute />,
         children: [
@@ -71,7 +69,7 @@ const router = createBrowserRouter([
   },
 
   {
-    element: <ProtectedRoute requiredRole="admin" />,
+    element: <ProtectedRoute requiredRole="ADMIN" />,
     children: [
       {
         path: "admin",
