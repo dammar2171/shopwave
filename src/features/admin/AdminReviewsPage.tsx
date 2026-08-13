@@ -11,27 +11,27 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
-import type { ProductReview, ReviewStatus } from "../reviews/types";
-import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 import {
-  updateReviewStatus,
-  setStoreReply,
-} from "@/features/reviews/reviewsSlice";
+  useGetAllReviewsQuery,
+  useUpdateReviewStatusMutation,
+  useReplyToReviewMutation,
+} from "@/features/reviews/reviewsApi";
+import type { Review, ReviewStatus } from "@/features/reviews/types";
 
 const statusVariant: Record<
   ReviewStatus,
   "default" | "secondary" | "outline" | "destructive"
 > = {
-  pending: "outline",
-  approved: "secondary",
-  rejected: "destructive",
+  PENDING: "outline",
+  APPROVED: "secondary",
+  REJECTED: "destructive",
 };
 
-const statusFilters: Array<ReviewStatus | "all"> = [
-  "all",
-  "pending",
-  "approved",
-  "rejected",
+const statusFilters: Array<ReviewStatus | "ALL"> = [
+  "ALL",
+  "PENDING",
+  "APPROVED",
+  "REJECTED",
 ];
 
 function StarRating({ rating }: { rating: number }) {
@@ -53,39 +53,51 @@ function StarRating({ rating }: { rating: number }) {
 }
 
 function AdminReviewsPage() {
-  const dispatch = useAppDispatch();
-  const reviews = useAppSelector((state) => state.reviews.items);
-  const [statusFilter, setStatusFilter] = useState<ReviewStatus | "all">("all");
-  const [replyTarget, setReplyTarget] = useState<ProductReview | null>(null);
+  const [statusFilter, setStatusFilter] = useState<ReviewStatus | "ALL">("ALL");
+  const { data: response, isLoading } = useGetAllReviewsQuery(
+    statusFilter !== "ALL" ? statusFilter : undefined,
+  );
+  const [updateStatus] = useUpdateReviewStatusMutation();
+  const [replyToReview] = useReplyToReviewMutation();
+
+  const reviews = response?.data ?? [];
+
+  const [replyTarget, setReplyTarget] = useState<Review | null>(null);
   const [replyText, setReplyText] = useState("");
 
-  const filteredReviews = reviews.filter(
-    (r) => statusFilter === "all" || r.status === statusFilter,
-  );
-
-  function updateStatus(id: string, status: ReviewStatus) {
-    dispatch(updateReviewStatus({ id, status }));
-    toast.success(`Review ${status}.`);
+  async function handleStatusChange(id: string, status: ReviewStatus) {
+    try {
+      await updateStatus({ id, status }).unwrap();
+      toast.success(`Review ${status.toLowerCase()}.`);
+    } catch (error: any) {
+      toast.error(error?.data?.message ?? "Failed to update review");
+    }
   }
 
-  function openReplyDialog(review: ProductReview) {
+  function openReplyDialog(review: Review) {
     setReplyTarget(review);
     setReplyText(review.storeReply ?? "");
   }
 
-  function submitReply() {
+  async function submitReply() {
     if (!replyTarget) return;
-    dispatch(setStoreReply({ id: replyTarget.id, reply: replyText }));
-    toast.success("Reply saved.");
-    setReplyTarget(null);
-    setReplyText("");
+    try {
+      await replyToReview({
+        id: replyTarget.id,
+        storeReply: replyText,
+      }).unwrap();
+      toast.success("Reply saved.");
+      setReplyTarget(null);
+      setReplyText("");
+    } catch (error: any) {
+      toast.error(error?.data?.message ?? "Failed to save reply");
+    }
   }
 
   return (
     <div className="space-y-6">
       <h1 className="text-2xl font-bold">Reviews</h1>
 
-      {/* Filters */}
       <div className="flex gap-2 flex-wrap">
         {statusFilters.map((status) => (
           <button
@@ -98,14 +110,21 @@ function AdminReviewsPage() {
                 : "border-input hover:bg-accent text-muted-foreground",
             )}
           >
-            {status}
+            {status.toLowerCase()}
           </button>
         ))}
       </div>
 
-      {/* Review list */}
       <div className="space-y-4">
-        {filteredReviews.length === 0 && (
+        {isLoading && (
+          <Card>
+            <CardContent className="p-8 text-center text-muted-foreground">
+              Loading...
+            </CardContent>
+          </Card>
+        )}
+
+        {!isLoading && reviews.length === 0 && (
           <Card>
             <CardContent className="p-8 text-center text-muted-foreground">
               No reviews found.
@@ -113,13 +132,13 @@ function AdminReviewsPage() {
           </Card>
         )}
 
-        {filteredReviews.map((review) => (
+        {reviews.map((review) => (
           <Card key={review.id}>
             <CardContent className="pt-6">
               <div className="flex gap-4">
                 <img
-                  src={review.productImage}
-                  alt={review.productTitle}
+                  src={review.product?.image}
+                  alt={review.product?.title}
                   className="h-14 w-14 rounded-md object-cover bg-muted shrink-0"
                 />
 
@@ -127,10 +146,10 @@ function AdminReviewsPage() {
                   <div className="flex items-start justify-between gap-3 flex-wrap">
                     <div>
                       <p className="text-sm font-medium">
-                        {review.productTitle}
+                        {review.product?.title}
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        by {review.customerName} ·{" "}
+                        by {review.user?.name ?? "Anonymous"} ·{" "}
                         {new Date(review.createdAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -138,7 +157,7 @@ function AdminReviewsPage() {
                       variant={statusVariant[review.status]}
                       className="capitalize"
                     >
-                      {review.status}
+                      {review.status.toLowerCase()}
                     </Badge>
                   </div>
 
@@ -160,22 +179,26 @@ function AdminReviewsPage() {
                   )}
 
                   <div className="flex gap-2 pt-1 flex-wrap">
-                    {review.status !== "approved" && (
+                    {review.status !== "APPROVED" && (
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() => updateStatus(review.id, "approved")}
+                        onClick={() =>
+                          handleStatusChange(review.id, "APPROVED")
+                        }
                       >
                         <Check className="h-3.5 w-3.5 mr-1" />
                         Approve
                       </Button>
                     )}
-                    {review.status !== "rejected" && (
+                    {review.status !== "REJECTED" && (
                       <Button
                         size="sm"
                         variant="outline"
                         className="text-destructive hover:text-destructive"
-                        onClick={() => updateStatus(review.id, "rejected")}
+                        onClick={() =>
+                          handleStatusChange(review.id, "REJECTED")
+                        }
                       >
                         <X className="h-3.5 w-3.5 mr-1" />
                         Reject
@@ -197,14 +220,15 @@ function AdminReviewsPage() {
         ))}
       </div>
 
-      {/* Reply Dialog */}
       <Dialog
         open={!!replyTarget}
         onOpenChange={(open) => !open && setReplyTarget(null)}
       >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Reply to {replyTarget?.customerName}</DialogTitle>
+            <DialogTitle>
+              Reply to {replyTarget?.user?.name ?? "customer"}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <textarea
