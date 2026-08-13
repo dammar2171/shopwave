@@ -2,6 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import toast from "react-hot-toast";
 import { Mail, Phone, MapPin, Clock } from "lucide-react";
+import { useSubmitMessageMutation } from "@/features/contact/contactApi";
 
 import {
   Form,
@@ -52,13 +53,19 @@ function ContactPage() {
     defaultValues: { name: "", email: "", subject: "", message: "" },
   });
 
-  function onSubmit(values: ContactFormValues) {
-    // No backend yet — simulate sending
-    console.log("Contact form submitted:", values);
-    toast.success("Message sent! We'll get back to you soon.");
-    form.reset();
-  }
+  const [submitMessage, { isLoading }] = useSubmitMessageMutation();
 
+  async function onSubmit(values: ContactFormValues) {
+    try {
+      await submitMessage(values).unwrap();
+      toast.success("Message sent! We'll get back to you soon.");
+      form.reset();
+    } catch (error: any) {
+      toast.error(
+        error?.data?.message ?? "Failed to send message. Please try again.",
+      );
+    }
+  }
   return (
     <>
       {/* Hero */}
@@ -210,8 +217,13 @@ function ContactPage() {
                       )}
                     />
 
-                    <Button type="submit" size="lg" className="w-full">
-                      Send Message
+                    <Button
+                      type="submit"
+                      size="lg"
+                      className="w-full"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? "Sending..." : "Send Message"}
                     </Button>
                   </form>
                 </Form>
