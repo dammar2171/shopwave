@@ -15,13 +15,15 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
 import { clearCart } from "@/features/cart/cartSlice";
+import { useCreateOrderMutation } from "@/features/orders/ordersApi";
 import { checkoutSchema, type CheckoutFormValues } from "./checkoutSchema";
 import { Card, CardContent } from "@/components/ui/card";
-import { Reveal } from "@/components/motion/Reveal";
+
 function CheckoutPage() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const items = useAppSelector((state) => state.cart.items);
+  const [createOrder, { isLoading }] = useCreateOrderMutation();
 
   const subtotal = items.reduce(
     (sum, item) => sum + item.product.price * item.quantity,
@@ -40,12 +42,29 @@ function CheckoutPage() {
     },
   });
 
-  function onSubmit(values: CheckoutFormValues) {
-    // No real backend yet — simulate order placement
-    console.log("Order placed:", { values, items, subtotal });
-    toast.success("Order placed successfully!");
-    dispatch(clearCart());
-    navigate("/orders");
+  async function onSubmit(values: CheckoutFormValues) {
+    try {
+      await createOrder({
+        items: items.map((item) => ({
+          productId: item.product.id,
+          quantity: item.quantity,
+        })),
+        shippingFullName: values.fullName,
+        shippingAddress: values.address,
+        shippingCity: values.city,
+        shippingPostalCode: values.postalCode,
+        shippingPhone: values.phone,
+        paymentMethod: "Cash on Delivery",
+      }).unwrap();
+
+      toast.success("Order placed successfully!");
+      dispatch(clearCart());
+      navigate("/profile/orders");
+    } catch (error: any) {
+      toast.error(
+        error?.data?.message ?? "Failed to place order. Please try again.",
+      );
+    }
   }
 
   if (items.length === 0) {
@@ -59,12 +78,13 @@ function CheckoutPage() {
   }
 
   return (
-    <Reveal className="mx-auto max-w-6xl px-4 py-8 grid md:grid-cols-2 gap-8">
-      {/* Form */}
+    <div className="mx-auto max-w-6xl px-4 py-8 grid md:grid-cols-2 gap-8">
       <div>
         <h1 className="text-xl font-bold mb-4">Shipping Details</h1>
         <Card>
+          {" "}
           <CardContent>
+            {" "}
             <Form {...form}>
               <form
                 onSubmit={form.handleSubmit(onSubmit)}
@@ -156,8 +176,13 @@ function CheckoutPage() {
                   )}
                 />
 
-                <Button type="submit" size="lg" className="w-full">
-                  Place Order
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full"
+                  disabled={isLoading}
+                >
+                  {isLoading ? "Placing Order..." : "Place Order"}
                 </Button>
               </form>
             </Form>
@@ -165,35 +190,29 @@ function CheckoutPage() {
         </Card>
       </div>
 
-      {/* Order summary */}
       <div>
         <h2 className="text-xl font-bold mb-4">Order Summary</h2>
+        <div className="space-y-3">
+          {items.map((item) => (
+            <div key={item.product.id} className="flex justify-between text-sm">
+              <span className="text-muted-foreground">
+                {item.product.title} × {item.quantity}
+              </span>
+              <span>${(item.product.price * item.quantity).toFixed(2)}</span>
+            </div>
+          ))}
+        </div>
+        <Separator className="my-4" />
         <Card>
           <CardContent>
-            <div className="space-y-3">
-              {items.map((item) => (
-                <div
-                  key={item.product.id}
-                  className="flex justify-between text-sm"
-                >
-                  <span className="text-muted-foreground">
-                    {item.product.title} × {item.quantity}
-                  </span>
-                  <span>
-                    ${(item.product.price * item.quantity).toFixed(2)}
-                  </span>
-                </div>
-              ))}
+            <div className="flex justify-between font-semibold text-lg">
+              <span>Total</span>
+              <span>${subtotal.toFixed(2)}</span>
             </div>
           </CardContent>
         </Card>
-        <Separator className="my-4" />
-        <div className="flex justify-between font-semibold text-lg">
-          <span>Total</span>
-          <span>${subtotal.toFixed(2)}</span>
-        </div>
       </div>
-    </Reveal>
+    </div>
   );
 }
 

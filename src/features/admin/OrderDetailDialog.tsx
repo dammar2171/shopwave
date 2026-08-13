@@ -8,17 +8,17 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { AdminOrder, OrderStatus } from "./types";
+import type { Order, OrderStatus } from "@/features/orders/types";
 
 const allStatuses: OrderStatus[] = [
-  "Pending",
-  "Processing",
-  "Shipped",
-  "Delivered",
+  "PENDING",
+  "PROCESSING",
+  "SHIPPED",
+  "DELIVERED",
 ];
 
 interface OrderDetailDialogProps {
-  order: AdminOrder | null;
+  order: Order | null;
   onClose: () => void;
   onStatusChange: (orderId: string, status: OrderStatus) => void;
 }
@@ -32,17 +32,16 @@ export function OrderDetailDialog({
 
   const currentStepIndex = allStatuses.indexOf(order.status);
   const isCancelledOrRefunded =
-    order.status === "Cancelled" || order.status === "Refunded";
+    order.status === "CANCELLED" || order.status === "REFUNDED";
 
   return (
     <Dialog open={!!order} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Order {order.id}</DialogTitle>
+          <DialogTitle>Order {order.id.slice(0, 8).toUpperCase()}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
-          {/* Status stepper */}
           {!isCancelledOrRefunded && (
             <div className="flex items-center justify-between">
               {allStatuses.map((status, index) => (
@@ -78,11 +77,10 @@ export function OrderDetailDialog({
             </Badge>
           )}
 
-          {/* Update status */}
           <div>
             <p className="text-sm font-medium mb-2">Update Status</p>
             <div className="flex flex-wrap gap-2">
-              {[...allStatuses, "Cancelled", "Refunded"].map((status) => (
+              {[...allStatuses, "CANCELLED", "REFUNDED"].map((status) => (
                 <button
                   key={status}
                   onClick={() =>
@@ -103,36 +101,36 @@ export function OrderDetailDialog({
 
           <Separator />
 
-          {/* Customer + shipping */}
           <div className="grid sm:grid-cols-2 gap-6">
             <div>
               <p className="text-sm font-semibold mb-2">Customer</p>
-              <p className="text-sm">{order.customerName}</p>
-              <p className="text-sm text-muted-foreground">
-                {order.customerEmail}
-              </p>
+              <p className="text-sm">{order.shippingFullName}</p>
+              {order.user?.email && (
+                <p className="text-sm text-muted-foreground">
+                  {order.user.email}
+                </p>
+              )}
             </div>
             <div>
               <p className="text-sm font-semibold mb-2">Shipping Address</p>
-              <p className="text-sm">{order.shippingAddress.fullName}</p>
+              <p className="text-sm">{order.shippingFullName}</p>
               <p className="text-sm text-muted-foreground">
-                {order.shippingAddress.address}, {order.shippingAddress.city}{" "}
-                {order.shippingAddress.postalCode}
+                {order.shippingAddress}, {order.shippingCity}{" "}
+                {order.shippingPostalCode}
               </p>
               <p className="text-sm text-muted-foreground">
-                {order.shippingAddress.phone}
+                {order.shippingPhone}
               </p>
             </div>
           </div>
 
           <Separator />
 
-          {/* Items */}
           <div>
             <p className="text-sm font-semibold mb-3">Items</p>
             <div className="space-y-3">
               {order.items.map((item) => (
-                <div key={item.productId} className="flex items-center gap-3">
+                <div key={item.id} className="flex items-center gap-3">
                   <img
                     src={item.image}
                     alt={item.title}
@@ -147,7 +145,7 @@ export function OrderDetailDialog({
                     </p>
                   </div>
                   <p className="text-sm font-medium">
-                    ${(item.price * item.quantity).toFixed(2)}
+                    ${(Number(item.price) * item.quantity).toFixed(2)}
                   </p>
                 </div>
               ))}
@@ -156,19 +154,18 @@ export function OrderDetailDialog({
 
           <Separator />
 
-          {/* Totals */}
           <div className="space-y-1 text-sm">
             <div className="flex justify-between text-muted-foreground">
               <span>Subtotal</span>
-              <span>${order.subtotal.toFixed(2)}</span>
+              <span>${Number(order.subtotal).toFixed(2)}</span>
             </div>
             <div className="flex justify-between text-muted-foreground">
               <span>Shipping</span>
-              <span>${order.shippingCost.toFixed(2)}</span>
+              <span>${Number(order.shippingCost).toFixed(2)}</span>
             </div>
             <div className="flex justify-between font-semibold text-base pt-1">
               <span>Total</span>
-              <span>${order.total.toFixed(2)}</span>
+              <span>${Number(order.total).toFixed(2)}</span>
             </div>
             <p className="text-xs text-muted-foreground pt-2">
               Payment: {order.paymentMethod}

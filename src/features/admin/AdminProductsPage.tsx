@@ -22,18 +22,27 @@ import {
 } from "@/components/ui/alert-dialog";
 import toast from "react-hot-toast";
 import { ProductForm } from "./ProductForm";
-import { mockAdminProducts as initialProducts } from "./mockAdminData";
-import type { AdminProduct } from "./types";
-import type { ProductFormValues } from "./schemas/productSchema";
+import {
+  useGetProductsQuery,
+  useCreateProductMutation,
+  useUpdateProductMutation,
+  useDeleteProductMutation,
+} from "@/features/products/productsApi";
+import type { Product } from "@/features/products/types";
+import type { ProductFormValues } from "@/features/admin/schemas/productSchema";
 
 function AdminProductsPage() {
-  const [products, setProducts] = useState<AdminProduct[]>(initialProducts);
+  const { data: response, isLoading } = useGetProductsQuery();
+  const [createProduct, { isLoading: isCreating }] = useCreateProductMutation();
+  const [updateProduct, { isLoading: isUpdating }] = useUpdateProductMutation();
+  const [deleteProduct] = useDeleteProductMutation();
+
+  const products = response?.data ?? [];
+
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<AdminProduct | null>(
-    null,
-  );
-  const [deleteTarget, setDeleteTarget] = useState<AdminProduct | null>(null);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
 
   const filteredProducts = products.filter(
     (p) =>
@@ -46,50 +55,47 @@ function AdminProductsPage() {
     setDialogOpen(true);
   }
 
-  function openEditDialog(product: AdminProduct) {
+  function openEditDialog(product: Product) {
     setEditingProduct(product);
     setDialogOpen(true);
   }
 
-  function handleSubmit(values: ProductFormValues) {
-    if (editingProduct) {
-      // Edit existing
-      setProducts((prev) =>
-        prev.map((p) =>
-          p.id === editingProduct.id
-            ? { ...p, ...values, updatedAt: new Date().toISOString() }
-            : p,
-        ),
-      );
-      toast.success("Product updated successfully!");
-    } else {
-      // Add new
-      const newProduct: AdminProduct = {
-        ...values,
-        id: crypto.randomUUID(),
-        rating: 0,
-        createdAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString(),
-      };
-      setProducts((prev) => [newProduct, ...prev]);
-      toast.success("Product added successfully!");
+  async function handleSubmit(values: ProductFormValues) {
+    try {
+      if (editingProduct) {
+        await updateProduct({ id: editingProduct.id, data: values }).unwrap();
+        toast.success("Product updated successfully!");
+      } else {
+        await createProduct(values).unwrap();
+        toast.success("Product added successfully!");
+      }
+      setDialogOpen(false);
+    } catch (error: any) {
+      toast.error(error?.data?.message ?? "Something went wrong");
     }
-    setDialogOpen(false);
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!deleteTarget) return;
-    setProducts((prev) => prev.filter((p) => p.id !== deleteTarget.id));
-    toast.success("Product deleted.");
-    setDeleteTarget(null);
+    try {
+      await deleteProduct(deleteTarget.id).unwrap();
+      toast.success("Product deleted.");
+    } catch (error: any) {
+      toast.error(error?.data?.message ?? "Failed to delete product");
+    } finally {
+      setDeleteTarget(null);
+    }
   }
 
-  function toggleActive(product: AdminProduct) {
-    setProducts((prev) =>
-      prev.map((p) =>
-        p.id === product.id ? { ...p, isActive: !p.isActive } : p,
-      ),
-    );
+  async function toggleActive(product: Product) {
+    try {
+      await updateProduct({
+        id: product.id,
+        data: { isActive: !product.isActive },
+      }).unwrap();
+    } catch (error: any) {
+      toast.error(error?.data?.message ?? "Failed to update product");
+    }
   }
 
   return (
@@ -127,7 +133,17 @@ function AdminProductsPage() {
               </tr>
             </thead>
             <tbody>
-              {filteredProducts.length === 0 && (
+              {isLoading && (
+                <tr>
+                  <td
+                    colSpan={7}
+                    className="p-8 text-center text-muted-foreground"
+                  >
+                    Loading...
+                  </td>
+                </tr>
+              )}
+              {!isLoading && filteredProducts.length === 0 && (
                 <tr>
                   <td
                     colSpan={7}
@@ -155,9 +171,9 @@ function AdminProductsPage() {
                     </td>
                     <td className="p-4 text-muted-foreground">{product.sku}</td>
                     <td className="p-4 text-muted-foreground">
-                      {product.category}
+                      {product.category.name}
                     </td>
-                    <td className="p-4">${product.price.toFixed(2)}</td>
+                    <td className="p-4">${Number(product.price).toFixed(2)}</td>
                     <td className="p-4">
                       <div className="flex items-center gap-1">
                         {product.stock}
@@ -205,7 +221,6 @@ function AdminProductsPage() {
         </CardContent>
       </Card>
 
-      {/* Add/Edit Dialog */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
@@ -214,14 +229,32 @@ function AdminProductsPage() {
             </DialogTitle>
           </DialogHeader>
           <ProductForm
-            defaultValues={editingProduct ?? undefined}
+            defaultValues={
+              editingProduct
+                ? {
+                    title: editingProduct.title,
+                    description: editingProduct.description,
+                    price: Number(editingProduct.price),
+                    originalPrice: editingProduct.originalPrice
+                      ? Number(editingProduct.originalPrice)
+                      : undefined,
+                    costPrice: Number(editingProduct.costPrice),
+                    categoryId: editingProduct.category.id,
+                    sku: editingProduct.sku,
+                    stock: editingProduct.stock,
+                    lowStockThreshold: editingProduct.lowStockThreshold,
+                    image: editingProduct.image,
+                    isActive: editingProduct.isActive,
+                  }
+                : undefined
+            }
             onSubmit={handleSubmit}
             onCancel={() => setDialogOpen(false)}
+            isSubmitting={isCreating || isUpdating}
           />
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}

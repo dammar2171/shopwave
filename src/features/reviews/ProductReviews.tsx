@@ -4,8 +4,11 @@ import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { useAppDispatch, useAppSelector } from "@/hooks/reduxHooks";
-import { addReview } from "./reviewsSlice";
+import { useAppSelector } from "@/hooks/reduxHooks";
+import {
+  useGetProductReviewsQuery,
+  useCreateReviewMutation,
+} from "./reviewsApi";
 import { StarRatingInput } from "./StarRatingInput";
 import { cn } from "@/lib/utils";
 import type { Product } from "../products/types";
@@ -15,28 +18,18 @@ interface ProductReviewsProps {
 }
 
 export function ProductReviews({ product }: ProductReviewsProps) {
-  const dispatch = useAppDispatch();
-  const user = useAppSelector((state) => state.auth.user);
   const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+  const { data: response, isLoading } = useGetProductReviewsQuery(product.id);
+  const [createReview, { isLoading: isSubmitting }] = useCreateReviewMutation();
 
-  const allReviews = useAppSelector(
-    (state) => (state as any).reviews?.items ?? [],
-  ) as any[];
-  const approvedReviews = allReviews.filter(
-    (r: any) => r.productId === product.id && r.status === "approved",
-  );
+  const reviews = response?.data.reviews ?? [];
+  const averageRating = response?.data.averageRating ?? 0;
 
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [showForm, setShowForm] = useState(false);
 
-  const averageRating =
-    approvedReviews.length > 0
-      ? approvedReviews.reduce((sum, r) => sum + r.rating, 0) /
-        approvedReviews.length
-      : 0;
-
-  function handleSubmit() {
+  async function handleSubmit() {
     if (rating === 0) {
       toast.error("Please select a star rating");
       return;
@@ -46,21 +39,23 @@ export function ProductReviews({ product }: ProductReviewsProps) {
       return;
     }
 
-    dispatch(
-      addReview({
+    try {
+      await createReview({
         productId: product.id,
-        productTitle: product.title,
-        productImage: product.image,
-        customerName: user?.name ?? "Anonymous",
         rating,
         comment: comment.trim(),
-      }),
-    );
+      }).unwrap();
+      toast.success("Review submitted! It will appear after approval.");
+      setRating(0);
+      setComment("");
+      setShowForm(false);
+    } catch (error: any) {
+      toast.error(error?.data?.message ?? "Failed to submit review");
+    }
+  }
 
-    toast.success("Review submitted! It will appear after approval.");
-    setRating(0);
-    setComment("");
-    setShowForm(false);
+  if (isLoading) {
+    return <p className="text-sm text-muted-foreground">Loading reviews...</p>;
   }
 
   return (
@@ -68,7 +63,7 @@ export function ProductReviews({ product }: ProductReviewsProps) {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>
           <h2 className="text-xl font-bold">Customer Reviews</h2>
-          {approvedReviews.length > 0 && (
+          {reviews.length > 0 && (
             <div className="flex items-center gap-2 mt-1">
               <div className="flex gap-0.5">
                 {Array.from({ length: 5 }).map((_, i) => (
@@ -84,8 +79,8 @@ export function ProductReviews({ product }: ProductReviewsProps) {
                 ))}
               </div>
               <span className="text-sm text-muted-foreground">
-                {averageRating.toFixed(1)} ({approvedReviews.length} review
-                {approvedReviews.length !== 1 ? "s" : ""})
+                {averageRating.toFixed(1)} ({reviews.length} review
+                {reviews.length !== 1 ? "s" : ""})
               </span>
             </div>
           )}
@@ -119,7 +114,9 @@ export function ProductReviews({ product }: ProductReviewsProps) {
               <Button variant="outline" onClick={() => setShowForm(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleSubmit}>Submit Review</Button>
+              <Button onClick={handleSubmit} disabled={isSubmitting}>
+                {isSubmitting ? "Submitting..." : "Submit Review"}
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -133,16 +130,18 @@ export function ProductReviews({ product }: ProductReviewsProps) {
 
       <Separator />
 
-      {approvedReviews.length === 0 ? (
+      {reviews.length === 0 ? (
         <p className="text-sm text-muted-foreground">
           No reviews yet. Be the first to review this product!
         </p>
       ) : (
         <div className="space-y-4">
-          {approvedReviews.map((review) => (
+          {reviews.map((review) => (
             <div key={review.id} className="space-y-2">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium">{review.customerName}</p>
+                <p className="text-sm font-medium">
+                  {review.user?.name ?? "Anonymous"}
+                </p>
                 <span className="text-xs text-muted-foreground">
                   {new Date(review.createdAt).toLocaleDateString()}
                 </span>

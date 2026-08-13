@@ -6,7 +6,7 @@ export const productSchema = z.object({
   price: z.number().positive("Price must be greater than 0"),
   originalPrice: z.number().optional(),
   costPrice: z.number().min(0, "Cost price cannot be negative"),
-  category: z.string().min(1, "Select a category"),
+  categoryId: z.string().min(1, "Select a category"),
   sku: z.string().min(3, "SKU must be at least 3 characters"),
   stock: z.number().int().min(0, "Stock cannot be negative"),
   lowStockThreshold: z.number().int().min(0),

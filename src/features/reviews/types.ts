@@ -1,14 +1,15 @@
-export type ReviewStatus = "pending" | "approved" | "rejected"
+export type ReviewStatus = "PENDING" | "APPROVED" | "REJECTED"
 
-export interface ProductReview {
+export interface Review {
   id: string
   productId: string
-  productTitle: string
-  productImage: string
-  customerName: string
+  userId: string
   rating: number
   comment: string
   status: ReviewStatus
   storeReply?: string
   createdAt: string
+  updatedAt: string
+  user?: { name: string }
+  product?: { title: string; image: string }
 }

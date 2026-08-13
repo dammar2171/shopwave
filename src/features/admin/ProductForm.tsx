@@ -1,6 +1,5 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import z from "zod";
 import {
   Form,
   FormControl,
@@ -12,12 +11,13 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { productSchema, type ProductFormValues } from "./schemas/productSchema";
-import { mockCategories } from "./mockAdminData";
+import { useGetCategoriesQuery } from "@/features/categories/categoriesApi";
 
 interface ProductFormProps {
   defaultValues?: ProductFormValues;
   onSubmit: (values: ProductFormValues) => void;
   onCancel: () => void;
+  isSubmitting?: boolean;
 }
 
 const emptyDefaults: ProductFormValues = {
@@ -26,7 +26,7 @@ const emptyDefaults: ProductFormValues = {
   price: 0,
   originalPrice: undefined,
   costPrice: 0,
-  category: "",
+  categoryId: "",
   sku: "",
   stock: 0,
   lowStockThreshold: 10,
@@ -38,7 +38,11 @@ export function ProductForm({
   defaultValues,
   onSubmit,
   onCancel,
+  isSubmitting,
 }: ProductFormProps) {
+  const { data: categoriesResponse } = useGetCategoriesQuery();
+  const categories = categoriesResponse?.data ?? [];
+
   const form = useForm<ProductFormValues>({
     resolver: zodResolver(productSchema),
     defaultValues: defaultValues ?? emptyDefaults,
@@ -82,7 +86,6 @@ export function ProductForm({
           )}
         />
 
-        {/* Price + Original Price */}
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -93,14 +96,14 @@ export function ProductForm({
                 <FormControl>
                   <Input
                     type="number"
-                    step="1"
+                    step="0.01"
                     name={field.name}
                     onBlur={field.onBlur}
+                    ref={field.ref}
+                    value={field.value}
                     onChange={(e) =>
                       field.onChange(e.target.valueAsNumber || 0)
                     }
-                    ref={field.ref}
-                    value={field.value as number | string}
                   />
                 </FormControl>
                 <FormMessage />
@@ -117,9 +120,11 @@ export function ProductForm({
                 <FormControl>
                   <Input
                     type="number"
-                    step="1"
+                    step="0.01"
                     name={field.name}
                     onBlur={field.onBlur}
+                    ref={field.ref}
+                    value={field.value ?? ""}
                     onChange={(e) =>
                       field.onChange(
                         e.target.value === ""
@@ -127,8 +132,6 @@ export function ProductForm({
                           : e.target.valueAsNumber,
                       )
                     }
-                    ref={field.ref}
-                    value={(field.value as number | string | undefined) ?? ""}
                   />
                 </FormControl>
                 <FormMessage />
@@ -137,7 +140,6 @@ export function ProductForm({
           />
         </div>
 
-        {/* Cost Price + SKU */}
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -148,14 +150,14 @@ export function ProductForm({
                 <FormControl>
                   <Input
                     type="number"
-                    step="1"
+                    step="0.01"
                     name={field.name}
                     onBlur={field.onBlur}
+                    ref={field.ref}
+                    value={field.value}
                     onChange={(e) =>
                       field.onChange(e.target.valueAsNumber || 0)
                     }
-                    ref={field.ref}
-                    value={field.value as number | string}
                   />
                 </FormControl>
                 <FormMessage />
@@ -178,10 +180,9 @@ export function ProductForm({
           />
         </div>
 
-        {/* Category */}
         <FormField
           control={form.control}
-          name="category"
+          name="categoryId"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Category</FormLabel>
@@ -191,8 +192,8 @@ export function ProductForm({
                   {...field}
                 >
                   <option value="">Select a category</option>
-                  {mockCategories.map((cat) => (
-                    <option key={cat.id} value={cat.name}>
+                  {categories.map((cat) => (
+                    <option key={cat.id} value={cat.id}>
                       {cat.name}
                     </option>
                   ))}
@@ -203,7 +204,6 @@ export function ProductForm({
           )}
         />
 
-        {/* Stock + Low Stock Threshold */}
         <div className="grid grid-cols-2 gap-4">
           <FormField
             control={form.control}
@@ -216,11 +216,11 @@ export function ProductForm({
                     type="number"
                     name={field.name}
                     onBlur={field.onBlur}
+                    ref={field.ref}
+                    value={field.value}
                     onChange={(e) =>
                       field.onChange(e.target.valueAsNumber || 0)
                     }
-                    ref={field.ref}
-                    value={field.value as number | string}
                   />
                 </FormControl>
                 <FormMessage />
@@ -239,11 +239,11 @@ export function ProductForm({
                     type="number"
                     name={field.name}
                     onBlur={field.onBlur}
+                    ref={field.ref}
+                    value={field.value}
                     onChange={(e) =>
                       field.onChange(e.target.valueAsNumber || 0)
                     }
-                    ref={field.ref}
-                    value={field.value as number | string}
                   />
                 </FormControl>
                 <FormMessage />
@@ -252,7 +252,6 @@ export function ProductForm({
           />
         </div>
 
-        {/* Image URL */}
         <FormField
           control={form.control}
           name="image"
@@ -267,7 +266,6 @@ export function ProductForm({
           )}
         />
 
-        {/* Active checkbox */}
         <FormField
           control={form.control}
           name="isActive"
@@ -281,7 +279,7 @@ export function ProductForm({
                   className="h-4 w-4"
                 />
               </FormControl>
-              <FormLabel className="mt-0">
+              <FormLabel className="!mt-0">
                 Active (visible on storefront)
               </FormLabel>
             </FormItem>
@@ -292,8 +290,12 @@ export function ProductForm({
           <Button type="button" variant="outline" onClick={onCancel}>
             Cancel
           </Button>
-          <Button type="submit">
-            {defaultValues ? "Save Changes" : "Add Product"}
+          <Button type="submit" disabled={isSubmitting}>
+            {isSubmitting
+              ? "Saving..."
+              : defaultValues
+                ? "Save Changes"
+                : "Add Product"}
           </Button>
         </div>
       </form>
