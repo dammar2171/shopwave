@@ -19,30 +19,39 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
-import { mockStats, mockRevenueData, mockTopSelling } from "./mockAdminData";
+import { useGetDashboardStatsQuery } from "./dashboardApi";
 
 function AdminDashboardPage() {
+  const { data: response, isLoading } = useGetDashboardStatsQuery();
+  const stats = response?.data;
+
+  if (isLoading || !stats) {
+    return (
+      <p className="text-sm text-muted-foreground">Loading dashboard...</p>
+    );
+  }
+
   const statCards = [
     {
       label: "Total Revenue",
-      value: `$${mockStats.totalRevenue.toLocaleString()}`,
-      change: mockStats.revenueChangePercent,
+      value: `$${stats.totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+      change: stats.revenueChangePercent,
       icon: DollarSign,
     },
     {
       label: "Total Orders",
-      value: mockStats.totalOrders.toLocaleString(),
-      change: mockStats.ordersChangePercent,
+      value: stats.totalOrders.toLocaleString(),
+      change: stats.ordersChangePercent,
       icon: ShoppingCart,
     },
     {
       label: "Total Products",
-      value: mockStats.totalProducts.toLocaleString(),
+      value: stats.totalProducts.toLocaleString(),
       icon: Package,
     },
     {
       label: "Total Users",
-      value: mockStats.totalUsers.toLocaleString(),
+      value: stats.totalUsers.toLocaleString(),
       icon: Users,
     },
   ];
@@ -56,7 +65,6 @@ function AdminDashboardPage() {
         </p>
       </div>
 
-      {/* Stat cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map(({ label, value, change, icon: Icon }) => (
           <Card key={label}>
@@ -88,29 +96,26 @@ function AdminDashboardPage() {
         ))}
       </div>
 
-      {/* Alerts row */}
-      {(mockStats.pendingOrders > 0 || mockStats.lowStockProducts > 0) && (
+      {(stats.pendingOrders > 0 || stats.lowStockProducts > 0) && (
         <div className="grid md:grid-cols-2 gap-4">
-          {mockStats.pendingOrders > 0 && (
+          {stats.pendingOrders > 0 && (
             <Card className="border-amber-200 dark:border-amber-900">
               <CardContent className="pt-6 flex items-center gap-3">
                 <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
                 <p className="text-sm">
-                  <span className="font-semibold">
-                    {mockStats.pendingOrders}
-                  </span>{" "}
+                  <span className="font-semibold">{stats.pendingOrders}</span>{" "}
                   orders are awaiting processing.
                 </p>
               </CardContent>
             </Card>
           )}
-          {mockStats.lowStockProducts > 0 && (
+          {stats.lowStockProducts > 0 && (
             <Card className="border-amber-200 dark:border-amber-900">
               <CardContent className="pt-6 flex items-center gap-3">
                 <AlertTriangle className="h-5 w-5 text-amber-600 shrink-0" />
                 <p className="text-sm">
                   <span className="font-semibold">
-                    {mockStats.lowStockProducts}
+                    {stats.lowStockProducts}
                   </span>{" "}
                   products are running low on stock.
                 </p>
@@ -120,7 +125,6 @@ function AdminDashboardPage() {
         </div>
       )}
 
-      {/* Revenue chart + Top selling side by side */}
       <div className="grid lg:grid-cols-3 gap-6">
         <Card className="lg:col-span-2">
           <CardHeader>
@@ -128,7 +132,7 @@ function AdminDashboardPage() {
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={280}>
-              <LineChart data={mockRevenueData}>
+              <LineChart data={stats.revenueData}>
                 <CartesianGrid
                   strokeDasharray="3 3"
                   className="stroke-border"
@@ -176,13 +180,17 @@ function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Top selling products */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Top Selling Products</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {mockTopSelling.map((product, index) => (
+            {stats.topSelling.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                No sales data yet.
+              </p>
+            )}
+            {stats.topSelling.map((product, index) => (
               <div key={product.productId} className="flex items-center gap-3">
                 <span className="text-sm font-semibold text-muted-foreground w-4">
                   {index + 1}
