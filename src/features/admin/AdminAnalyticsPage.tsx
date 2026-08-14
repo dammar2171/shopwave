@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import {
   LineChart,
   Line,
@@ -14,48 +14,31 @@ import {
   Cell,
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, UserPlus, Repeat } from "lucide-react";
-import {
-  mockRevenueData,
-  mockRevenueData30d,
-  mockCategoryBreakdown,
-  mockCustomerMetric,
-} from "./mockAdminData";
-import type { DateRange } from "./types";
+import { UserPlus, Repeat } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useGetAnalyticsQuery } from "./dashboardApi";
 
-const dateRangeOptions: { value: DateRange; label: string }[] = [
+const dateRangeOptions: { value: "7d" | "30d"; label: string }[] = [
   { value: "7d", label: "Last 7 Days" },
   { value: "30d", label: "Last 30 Days" },
 ];
 
-const pieColors = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-];
-
 function AdminAnalyticsPage() {
-  const [range, setRange] = useState<DateRange>("7d");
+  const [range, setRange] = useState<"7d" | "30d">("7d");
+  const { data: response, isLoading } = useGetAnalyticsQuery(range);
+  const data = response?.data;
 
-  const revenueData = range === "7d" ? mockRevenueData : mockRevenueData30d;
+  if (isLoading || !data) {
+    return (
+      <p className="text-sm text-muted-foreground">Loading analytics...</p>
+    );
+  }
 
-  const totalRevenue = useMemo(
-    () => revenueData.reduce((sum, d) => sum + d.revenue, 0),
-    [revenueData],
-  );
-  const totalOrders = useMemo(
-    () => revenueData.reduce((sum, d) => sum + d.orders, 0),
-    [revenueData],
-  );
-  const avgOrderValue = totalOrders > 0 ? totalRevenue / totalOrders : 0;
-
-  const totalCustomers =
-    mockCustomerMetric.newCustomers + mockCustomerMetric.returningCustomers;
-  const returningRate = (
-    (mockCustomerMetric.returningCustomers / totalCustomers) *
-    100
-  ).toFixed(0);
+  const totalCustomers = data.newCustomers + data.returningCustomers;
+  const returningRate =
+    totalCustomers > 0
+      ? ((data.returningCustomers / totalCustomers) * 100).toFixed(0)
+      : "0";
 
   return (
     <div className="space-y-6">
@@ -78,27 +61,26 @@ function AdminAnalyticsPage() {
         </div>
       </div>
 
-      {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">Total Revenue</p>
             <p className="text-2xl font-bold mt-1">
-              ${totalRevenue.toFixed(2)}
+              ${data.totalRevenue.toFixed(2)}
             </p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">Total Orders</p>
-            <p className="text-2xl font-bold mt-1">{totalOrders}</p>
+            <p className="text-2xl font-bold mt-1">{data.totalOrders}</p>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="pt-6">
             <p className="text-sm text-muted-foreground">Avg Order Value</p>
             <p className="text-2xl font-bold mt-1">
-              ${avgOrderValue.toFixed(2)}
+              ${data.avgOrderValue.toFixed(2)}
             </p>
           </CardContent>
         </Card>
@@ -110,7 +92,6 @@ function AdminAnalyticsPage() {
         </Card>
       </div>
 
-      {/* Revenue trend */}
       <Card>
         <CardHeader>
           <CardTitle className="text-base">
@@ -119,7 +100,7 @@ function AdminAnalyticsPage() {
         </CardHeader>
         <CardContent>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={revenueData}>
+            <LineChart data={data.revenueData}>
               <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
               <XAxis
                 dataKey="date"
@@ -166,109 +147,118 @@ function AdminAnalyticsPage() {
       </Card>
 
       <div className="grid lg:grid-cols-2 gap-6">
-        {/* Revenue by category - bar chart */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Revenue by Category</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={260}>
-              <BarChart
-                data={mockCategoryBreakdown}
-                layout="vertical"
-                margin={{ left: 20 }}
-              >
-                <CartesianGrid
-                  strokeDasharray="3 3"
-                  className="stroke-border"
-                  horizontal={false}
-                />
-                <XAxis
-                  type="number"
-                  className="text-xs"
-                  stroke="currentColor"
-                />
-                <YAxis
-                  type="category"
-                  dataKey="category"
-                  className="text-xs"
-                  stroke="currentColor"
-                  width={80}
-                />
-                <Tooltip
-                  formatter={(value) => [
-                    `$${Number(value).toFixed(2)}`,
-                    "Revenue",
-                  ]}
-                  contentStyle={{
-                    backgroundColor: "var(--popover)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "8px",
-                    color: "var(--popover-foreground)",
-                  }}
-                />
-                <Bar
-                  dataKey="revenue"
-                  fill="var(--primary)"
-                  radius={[0, 4, 4, 0]}
-                />
-              </BarChart>
-            </ResponsiveContainer>
+            {data.categoryBreakdown.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                No sales data yet.
+              </p>
+            ) : (
+              <ResponsiveContainer width="100%" height={260}>
+                <BarChart
+                  data={data.categoryBreakdown}
+                  layout="vertical"
+                  margin={{ left: 20 }}
+                >
+                  <CartesianGrid
+                    strokeDasharray="3 3"
+                    className="stroke-border"
+                    horizontal={false}
+                  />
+                  <XAxis
+                    type="number"
+                    className="text-xs"
+                    stroke="currentColor"
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="category"
+                    className="text-xs"
+                    stroke="currentColor"
+                    width={80}
+                  />
+                  <Tooltip
+                    formatter={(value) => [
+                      `$${Number(value).toFixed(2)}`,
+                      "Revenue",
+                    ]}
+                    contentStyle={{
+                      backgroundColor: "var(--popover)",
+                      border: "1px solid var(--border)",
+                      borderRadius: "8px",
+                      color: "var(--popover-foreground)",
+                    }}
+                  />
+                  <Bar
+                    dataKey="revenue"
+                    fill="var(--primary)"
+                    radius={[0, 4, 4, 0]}
+                  />
+                </BarChart>
+              </ResponsiveContainer>
+            )}
           </CardContent>
         </Card>
 
-        {/* Customer breakdown - pie chart */}
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Customer Breakdown</CardTitle>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
-            <ResponsiveContainer width="100%" height={220}>
-              <PieChart>
-                <Pie
-                  data={[
-                    { name: "New", value: mockCustomerMetric.newCustomers },
-                    {
-                      name: "Returning",
-                      value: mockCustomerMetric.returningCustomers,
-                    },
-                  ]}
-                  dataKey="value"
-                  nameKey="name"
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={80}
-                  paddingAngle={2}
-                >
-                  <Cell fill="var(--chart-1)" />
-                  <Cell fill="var(--primary)" />
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "var(--popover)",
-                    border: "1px solid var(--border)",
-                    borderRadius: "8px",
-                    color: "var(--popover-foreground)",
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-            <div className="flex gap-6 mt-2">
-              <div className="flex items-center gap-2 text-sm">
-                <span
-                  className="h-3 w-3 rounded-full"
-                  style={{ backgroundColor: "var(--chart-1)" }}
-                />
-                <UserPlus className="h-3.5 w-3.5 text-muted-foreground" />
-                New: {mockCustomerMetric.newCustomers}
-              </div>
-              <div className="flex items-center gap-2 text-sm">
-                <span className="h-3 w-3 rounded-full bg-primary" />
-                <Repeat className="h-3.5 w-3.5 text-muted-foreground" />
-                Returning: {mockCustomerMetric.returningCustomers}
-              </div>
-            </div>
+            {totalCustomers === 0 ? (
+              <p className="text-sm text-muted-foreground py-8">
+                No customer data yet.
+              </p>
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={[
+                        { name: "New", value: data.newCustomers },
+                        { name: "Returning", value: data.returningCustomers },
+                      ]}
+                      dataKey="value"
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={50}
+                      outerRadius={80}
+                      paddingAngle={2}
+                    >
+                      <Cell fill="var(--chart-1)" />
+                      <Cell fill="var(--primary)" />
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{
+                        backgroundColor: "var(--popover)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "8px",
+                        color: "var(--popover-foreground)",
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="flex gap-6 mt-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <span
+                      className="h-3 w-3 rounded-full"
+                      style={{ backgroundColor: "var(--chart-1)" }}
+                    />
+                    <UserPlus className="h-3.5 w-3.5 text-muted-foreground" />
+                    New: {data.newCustomers}
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <span className="h-3 w-3 rounded-full bg-primary" />
+                    <Repeat className="h-3.5 w-3.5 text-muted-foreground" />
+                    Returning: {data.returningCustomers}
+                  </div>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
