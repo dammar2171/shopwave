@@ -1,5 +1,6 @@
 import { baseApi } from "@/services/apiClient"
 import type { AdminUser, UserRole, AccountStatus } from "./types"
+import type { User } from "@/features/auth/types"
 
 interface UsersResponse {
   success: boolean
@@ -15,6 +16,16 @@ interface UsersResponse {
 interface UserResponse {
   success: boolean
   data: AdminUser
+}
+
+interface MyProfileResponse {
+  success: boolean
+  data: User
+}
+
+interface UpdateMyProfileInput {
+  name: string
+  email: string
 }
 
 export const usersApi = baseApi.injectEndpoints({
@@ -59,6 +70,13 @@ export const usersApi = baseApi.injectEndpoints({
         { type: "User", id: "LIST" },
       ],
     }),
+    updateMyProfile: builder.mutation<MyProfileResponse, UpdateMyProfileInput>({
+        query: (body) => ({
+        url: "/users/me",
+        method: "PATCH",
+        body,
+      }),
+    }),
   }),
 })
 
@@ -66,4 +84,5 @@ export const {
   useGetUsersQuery,
   useUpdateUserRoleMutation,
   useUpdateUserStatusMutation,
+  useUpdateMyProfileMutation,
 } = usersApi

@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -5,7 +6,7 @@ import toast from "react-hot-toast";
 import { useAppSelector, useAppDispatch } from "@/hooks/reduxHooks";
 import { useTheme } from "@/components/theme-provider";
 import { setCredentials } from "@/features/auth/authSlice";
-import { Label } from "@/components/ui/label";
+import { useUpdateMyProfileMutation } from "@/features/users/usersApi";
 import {
   Form,
   FormControl,
@@ -15,6 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -31,8 +33,9 @@ type DetailsFormValues = z.infer<typeof detailsSchema>;
 function ProfileOverview() {
   const dispatch = useAppDispatch();
   const user = useAppSelector((state) => state.auth.user);
-  const token = useAppSelector((state) => state.auth.token);
+  const accessToken = useAppSelector((state) => state.auth.accessToken);
   const { theme, setTheme } = useTheme();
+  const [updateMyProfile, { isLoading }] = useUpdateMyProfileMutation();
 
   const form = useForm<DetailsFormValues>({
     resolver: zodResolver(detailsSchema),
@@ -42,29 +45,47 @@ function ProfileOverview() {
     },
   });
 
+  useEffect(() => {
+    if (user) {
+      form.reset({ name: user.name, email: user.email });
+    }
+  }, [user]);
+
   const themeOptions = [
     { value: "light" as const, label: "Light", icon: Sun },
     { value: "dark" as const, label: "Dark", icon: Moon },
   ];
 
-  function onSubmit(values: DetailsFormValues) {
-    if (!user || !token) return;
+  async function onSubmit(values: DetailsFormValues) {
+    if (!accessToken) return;
 
-    // No backend yet — update Redux directly to simulate a saved profile
-    dispatch(
-      setCredentials({
-        user: { ...user, name: values.name, email: values.email },
-        token,
-      }),
-    );
-    toast.success("Profile updated successfully!");
+    try {
+      const response = await updateMyProfile(values).unwrap();
+
+      dispatch(
+        setCredentials({
+          user: response.data,
+          accessToken,
+        }),
+      );
+
+      toast.success("Profile updated successfully!");
+    } catch (error: any) {
+      toast.error(error?.data?.message ?? "Failed to update profile");
+    }
   }
 
   return (
-    <div className="space-y-8 ">
-      <h1 className="text-xl font-bold">My Details</h1>
-      <Card>
-        <CardContent className="pt-4">
+    <div className="space-y-8 max-w-6xl">
+      <div>
+        <h1 className="text-xl font-bold">My Details</h1>
+        <p className="text-sm text-muted-foreground mt-1">
+          Update your personal information
+        </p>
+      </div>
+
+      <Card className="max-w-6xl">
+        <CardContent className="pt-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -100,16 +121,16 @@ function ProfileOverview() {
                   Account Type
                 </Label>
                 <p className="font-medium text-sm mt-1 capitalize">
-                  {user?.role}
+                  {user?.role.toLowerCase()}
                 </p>
               </div>
 
               <Button
                 type="submit"
-                disabled={!form.formState.isDirty}
+                disabled={!form.formState.isDirty || isLoading}
                 className="w-full sm:w-auto"
               >
-                Save Changes
+                {isLoading ? "Saving..." : "Save Changes"}
               </Button>
             </form>
           </Form>
