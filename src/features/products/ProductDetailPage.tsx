@@ -103,10 +103,7 @@ function ProductDetailPage() {
         </div>
       </Reveal>
 
-      <Reveal
-        delay={0.3}
-        className="mx-auto max-w-5xl px-4 pb-12 md:col-span-2"
-      >
+      <Reveal delay={0.3} className="max-w-xl px-4 pb-12 md:col-span-2">
         <ProductReviews product={product} />
       </Reveal>
     </div>
