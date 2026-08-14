@@ -21,47 +21,67 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { cn } from "@/lib/utils";
-import { mockMessages as initialMessages } from "./mockAdminData";
-import type { ContactMessage } from "./types";
+import {
+  useGetMessagesQuery,
+  useMarkAsReadMutation,
+  useReplyToMessageMutation,
+  useDeleteMessageMutation,
+} from "@/features/contact/contactApi";
+import type { ContactMessage } from "@/features/contact/types";
 
 function AdminMessagesPage() {
-  const [messages, setMessages] = useState<ContactMessage[]>(initialMessages);
+  const { data: response, isLoading } = useGetMessagesQuery();
+  const [markAsRead] = useMarkAsReadMutation();
+  const [replyToMessage] = useReplyToMessageMutation();
+  const [deleteMessage] = useDeleteMessageMutation();
+
+  const messages = response?.data ?? [];
+  const unreadCount = messages.filter((m) => !m.isRead).length;
+
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(
     null,
   );
   const [replyText, setReplyText] = useState("");
   const [deleteTarget, setDeleteTarget] = useState<ContactMessage | null>(null);
 
-  const unreadCount = messages.filter((m) => !m.isRead).length;
-
-  function openMessage(message: ContactMessage) {
+  async function openMessage(message: ContactMessage) {
     setSelectedMessage(message);
     setReplyText(message.adminReply ?? "");
 
     if (!message.isRead) {
-      setMessages((prev) =>
-        prev.map((m) => (m.id === message.id ? { ...m, isRead: true } : m)),
-      );
+      try {
+        await markAsRead(message.id).unwrap();
+      } catch {
+        // non-critical — reading still works even if this silently fails
+      }
     }
   }
 
-  function submitReply() {
+  async function submitReply() {
     if (!selectedMessage) return;
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === selectedMessage.id ? { ...m, adminReply: replyText } : m,
-      ),
-    );
-    toast.success("Reply sent to " + selectedMessage.email);
-    setSelectedMessage(null);
-    setReplyText("");
+    try {
+      await replyToMessage({
+        id: selectedMessage.id,
+        adminReply: replyText,
+      }).unwrap();
+      toast.success("Reply sent to " + selectedMessage.email);
+      setSelectedMessage(null);
+      setReplyText("");
+    } catch (error: any) {
+      toast.error(error?.data?.message ?? "Failed to save reply");
+    }
   }
 
-  function handleDelete() {
+  async function handleDelete() {
     if (!deleteTarget) return;
-    setMessages((prev) => prev.filter((m) => m.id !== deleteTarget.id));
-    toast.success("Message deleted.");
-    setDeleteTarget(null);
+    try {
+      await deleteMessage(deleteTarget.id).unwrap();
+      toast.success("Message deleted.");
+    } catch (error: any) {
+      toast.error(error?.data?.message ?? "Failed to delete message");
+    } finally {
+      setDeleteTarget(null);
+    }
   }
 
   return (
@@ -75,7 +95,13 @@ function AdminMessagesPage() {
 
       <Card>
         <CardContent className="p-0">
-          {messages.length === 0 && (
+          {isLoading && (
+            <div className="p-8 text-center text-muted-foreground">
+              Loading...
+            </div>
+          )}
+
+          {!isLoading && messages.length === 0 && (
             <div className="p-8 text-center text-muted-foreground">
               No messages yet.
             </div>
@@ -83,11 +109,14 @@ function AdminMessagesPage() {
 
           <div className="divide-y">
             {messages.map((message) => (
-              <button
+              <div
                 key={message.id}
+                role="button"
+                tabIndex={0}
                 onClick={() => openMessage(message)}
+                onKeyDown={(e) => e.key === "Enter" && openMessage(message)}
                 className={cn(
-                  "w-full text-left p-4 flex items-start gap-3 hover:bg-accent/50 transition-colors",
+                  "w-full text-left p-4 flex items-start gap-3 hover:bg-accent/50 transition-colors cursor-pointer",
                   !message.isRead && "bg-primary/5",
                 )}
               >
@@ -139,13 +168,12 @@ function AdminMessagesPage() {
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
-              </button>
+              </div>
             ))}
           </div>
         </CardContent>
       </Card>
 
-      {/* Message detail + reply dialog */}
       <Dialog
         open={!!selectedMessage}
         onOpenChange={(open) => !open && setSelectedMessage(null)}
@@ -201,7 +229,6 @@ function AdminMessagesPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation */}
       <AlertDialog
         open={!!deleteTarget}
         onOpenChange={(open) => !open && setDeleteTarget(null)}
