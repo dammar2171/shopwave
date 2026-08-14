@@ -10,7 +10,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,8 +27,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import toast from "react-hot-toast";
-import { mockAdminUsers as initialUsers } from "./mockAdminData";
-import type { AdminUser } from "./types";
+import {
+  useGetUsersQuery,
+  useUpdateUserRoleMutation,
+  useUpdateUserStatusMutation,
+} from "@/features/users/usersApi";
+import type { AdminUser } from "@/features/users/types";
 
 type PendingAction =
   | { type: "promote" | "demote"; user: AdminUser }
@@ -37,38 +40,40 @@ type PendingAction =
   | null;
 
 function AdminUsersPage() {
-  const [users, setUsers] = useState<AdminUser[]>(initialUsers);
   const [searchQuery, setSearchQuery] = useState("");
+  const { data: response, isLoading } = useGetUsersQuery({
+    search: searchQuery || undefined,
+  });
+  const [updateRole] = useUpdateUserRoleMutation();
+  const [updateStatus] = useUpdateUserStatusMutation();
+
+  const users = response?.data ?? [];
+
   const [pendingAction, setPendingAction] = useState<PendingAction>(null);
 
-  const filteredUsers = users.filter(
-    (u) =>
-      u.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      u.email.toLowerCase().includes(searchQuery.toLowerCase()),
-  );
-
-  function confirmAction() {
+  async function confirmAction() {
     if (!pendingAction) return;
     const { type, user } = pendingAction;
 
-    setUsers((prev) =>
-      prev.map((u) => {
-        if (u.id !== user.id) return u;
-        if (type === "promote") return { ...u, role: "admin" };
-        if (type === "demote") return { ...u, role: "user" };
-        if (type === "suspend") return { ...u, status: "suspended" };
-        return { ...u, status: "active" };
-      }),
-    );
-
-    const messages = {
-      promote: `${user.name} is now an admin.`,
-      demote: `${user.name} is no longer an admin.`,
-      suspend: `${user.name}'s account has been suspended.`,
-      reactivate: `${user.name}'s account has been reactivated.`,
-    };
-    toast.success(messages[type]);
-    setPendingAction(null);
+    try {
+      if (type === "promote") {
+        await updateRole({ id: user.id, role: "ADMIN" }).unwrap();
+        toast.success(`${user.name} is now an admin.`);
+      } else if (type === "demote") {
+        await updateRole({ id: user.id, role: "USER" }).unwrap();
+        toast.success(`${user.name} is no longer an admin.`);
+      } else if (type === "suspend") {
+        await updateStatus({ id: user.id, status: "SUSPENDED" }).unwrap();
+        toast.success(`${user.name}'s account has been suspended.`);
+      } else {
+        await updateStatus({ id: user.id, status: "ACTIVE" }).unwrap();
+        toast.success(`${user.name}'s account has been reactivated.`);
+      }
+      setPendingAction(null);
+    } catch (error: any) {
+      toast.error(error?.data?.message ?? "Something went wrong");
+      setPendingAction(null);
+    }
   }
 
   const dialogText = {
@@ -118,105 +123,115 @@ function AdminUsersPage() {
                 <th className="text-left p-4 font-medium">Role</th>
                 <th className="text-left p-4 font-medium">Status</th>
                 <th className="text-left p-4 font-medium">Orders</th>
-                <th className="text-left p-4 font-medium">Total Spent</th>
                 <th className="text-left p-4 font-medium">Joined</th>
                 <th className="text-right p-4 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {filteredUsers.length === 0 && (
+              {isLoading && (
                 <tr>
                   <td
-                    colSpan={8}
+                    colSpan={7}
+                    className="p-8 text-center text-muted-foreground"
+                  >
+                    Loading...
+                  </td>
+                </tr>
+              )}
+              {!isLoading && users.length === 0 && (
+                <tr>
+                  <td
+                    colSpan={7}
                     className="p-8 text-center text-muted-foreground"
                   >
                     No users found.
                   </td>
                 </tr>
               )}
-              {filteredUsers.map((user) => (
-                <tr key={user.id} className="border-b last:border-0">
-                  <td className="p-4 font-medium">{user.name}</td>
-                  <td className="p-4 text-muted-foreground">{user.email}</td>
-                  <td className="p-4">
-                    <Badge
-                      variant={user.role === "admin" ? "default" : "outline"}
-                    >
-                      {user.role}
-                    </Badge>
-                  </td>
-                  <td className="p-4">
-                    <Badge
-                      variant={
-                        user.status === "active" ? "secondary" : "destructive"
-                      }
-                    >
-                      {user.status}
-                    </Badge>
-                  </td>
-                  <td className="p-4">{user.totalOrders}</td>
-                  <td className="p-4">${user.totalSpent.toFixed(2)}</td>
-                  <td className="p-4 text-muted-foreground">
-                    {user.joinedDate}
-                  </td>
-                  <td className="p-4 text-right">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent">
-                        <MoreVertical className="h-4 w-4" />
-                        <span className="sr-only">Actions</span>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        {user.role === "user" ? (
-                          <DropdownMenuItem
-                            onClick={() =>
-                              setPendingAction({ type: "promote", user })
-                            }
-                          >
-                            <ShieldCheck className="h-4 w-4 mr-2" />
-                            Promote to Admin
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem
-                            onClick={() =>
-                              setPendingAction({ type: "demote", user })
-                            }
-                          >
-                            <ShieldOff className="h-4 w-4 mr-2" />
-                            Remove Admin Access
-                          </DropdownMenuItem>
-                        )}
+              {users.map((user) => {
+                const orderCount = user._count?.orders ?? 0;
+                return (
+                  <tr key={user.id} className="border-b last:border-0">
+                    <td className="p-4 font-medium">{user.name}</td>
+                    <td className="p-4 text-muted-foreground">{user.email}</td>
+                    <td className="p-4">
+                      <Badge
+                        variant={user.role === "ADMIN" ? "default" : "outline"}
+                      >
+                        {user.role.toLowerCase()}
+                      </Badge>
+                    </td>
+                    <td className="p-4">
+                      <Badge
+                        variant={
+                          user.status === "ACTIVE" ? "secondary" : "destructive"
+                        }
+                      >
+                        {user.status.toLowerCase()}
+                      </Badge>
+                    </td>
+                    <td className="p-4">{orderCount}</td>
+                    <td className="p-4 text-muted-foreground">
+                      {new Date(user.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="p-4 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="inline-flex items-center justify-center h-8 w-8 rounded-md hover:bg-accent">
+                          <MoreVertical className="h-4 w-4" />
+                          <span className="sr-only">Actions</span>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          {user.role === "USER" ? (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setPendingAction({ type: "promote", user })
+                              }
+                            >
+                              <ShieldCheck className="h-4 w-4 mr-2" />
+                              Promote to Admin
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setPendingAction({ type: "demote", user })
+                              }
+                            >
+                              <ShieldOff className="h-4 w-4 mr-2" />
+                              Remove Admin Access
+                            </DropdownMenuItem>
+                          )}
 
-                        {user.status === "active" ? (
-                          <DropdownMenuItem
-                            onClick={() =>
-                              setPendingAction({ type: "suspend", user })
-                            }
-                            className="text-destructive"
-                          >
-                            <UserX className="h-4 w-4 mr-2" />
-                            Suspend Account
-                          </DropdownMenuItem>
-                        ) : (
-                          <DropdownMenuItem
-                            onClick={() =>
-                              setPendingAction({ type: "reactivate", user })
-                            }
-                          >
-                            <UserCheck className="h-4 w-4 mr-2" />
-                            Reactivate Account
-                          </DropdownMenuItem>
-                        )}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </td>
-                </tr>
-              ))}
+                          {user.status === "ACTIVE" ? (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setPendingAction({ type: "suspend", user })
+                              }
+                              className="text-destructive"
+                            >
+                              <UserX className="h-4 w-4 mr-2" />
+                              Suspend Account
+                            </DropdownMenuItem>
+                          ) : (
+                            <DropdownMenuItem
+                              onClick={() =>
+                                setPendingAction({ type: "reactivate", user })
+                              }
+                            >
+                              <UserCheck className="h-4 w-4 mr-2" />
+                              Reactivate Account
+                            </DropdownMenuItem>
+                          )}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </CardContent>
       </Card>
 
-      {/* Confirmation dialog */}
       <AlertDialog
         open={!!pendingAction}
         onOpenChange={(open) => !open && setPendingAction(null)}
