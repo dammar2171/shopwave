@@ -32,8 +32,8 @@ type DetailsFormValues = z.infer<typeof detailsSchema>;
 
 function ProfileOverview() {
   const dispatch = useAppDispatch();
-  const user = useAppSelector((state) => state.auth.user);
-  const accessToken = useAppSelector((state) => state.auth.accessToken);
+  const user = useAppSelector((state: any) => state.auth.user);
+  const accessToken = useAppSelector((state: any) => state.auth.accessToken);
   const { theme, setTheme } = useTheme();
   const [updateMyProfile, { isLoading }] = useUpdateMyProfileMutation();
 

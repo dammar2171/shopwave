@@ -142,7 +142,7 @@ function AdminSettingsPage() {
   }
 
   return (
-    <div className="space-y-6 max-w-2xl">
+    <div className="space-y-6 max-w-6xl">
       <h1 className="text-2xl font-bold">Settings</h1>
 
       <Tabs defaultValue="store">

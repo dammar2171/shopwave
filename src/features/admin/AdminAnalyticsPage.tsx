@@ -15,7 +15,6 @@ import {
 } from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UserPlus, Repeat } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useGetAnalyticsQuery } from "./dashboardApi";
 
 const dateRangeOptions: { value: "7d" | "30d"; label: string }[] = [
@@ -229,8 +228,8 @@ function AdminAnalyticsPage() {
                       outerRadius={80}
                       paddingAngle={2}
                     >
-                      <Cell fill="var(--chart-1)" />
                       <Cell fill="var(--primary)" />
+                      <Cell fill="var(--chart-1)" />
                     </Pie>
                     <Tooltip
                       contentStyle={{
@@ -246,13 +245,13 @@ function AdminAnalyticsPage() {
                   <div className="flex items-center gap-2 text-sm">
                     <span
                       className="h-3 w-3 rounded-full"
-                      style={{ backgroundColor: "var(--chart-1)" }}
+                      style={{ backgroundColor: "var(--primary)" }}
                     />
                     <UserPlus className="h-3.5 w-3.5 text-muted-foreground" />
                     New: {data.newCustomers}
                   </div>
                   <div className="flex items-center gap-2 text-sm">
-                    <span className="h-3 w-3 rounded-full bg-primary" />
+                    <span className="h-3 w-3 rounded-full bg-(--chart-1)" />
                     <Repeat className="h-3.5 w-3.5 text-muted-foreground" />
                     Returning: {data.returningCustomers}
                   </div>
