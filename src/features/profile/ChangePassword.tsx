@@ -2,7 +2,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import toast from "react-hot-toast";
-import { Card, CardContent } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
 import {
   Form,
   FormControl,
@@ -13,10 +13,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useAppDispatch } from "@/hooks/reduxHooks";
+import { logout } from "@/features/auth/authSlice";
+import { useChangePasswordMutation } from "@/features/auth/authApi";
+import { Card, CardContent } from "@/components/ui/card";
 
 const passwordSchema = z
   .object({
-    currentPassword: z.string().min(6, "Enter your current password"),
+    currentPassword: z.string().min(1, "Enter your current password"),
     newPassword: z
       .string()
       .min(6, "New password must be at least 6 characters"),
@@ -30,6 +34,10 @@ const passwordSchema = z
 type PasswordFormValues = z.infer<typeof passwordSchema>;
 
 function ChangePassword() {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+  const [changePassword, { isLoading }] = useChangePasswordMutation();
+
   const form = useForm<PasswordFormValues>({
     resolver: zodResolver(passwordSchema),
     defaultValues: {
@@ -39,18 +47,27 @@ function ChangePassword() {
     },
   });
 
-  function onSubmit(values: PasswordFormValues) {
-    // No backend yet — simulate success
-    console.log("Password change requested:", values);
-    toast.success("Password updated successfully!");
-    form.reset();
+  async function onSubmit(values: PasswordFormValues) {
+    try {
+      await changePassword({
+        currentPassword: values.currentPassword,
+        newPassword: values.newPassword,
+      }).unwrap();
+
+      toast.success("Password changed successfully. Please log in again.");
+      dispatch(logout());
+      navigate("/login");
+    } catch (error: any) {
+      toast.error(error?.data?.message ?? "Failed to change password");
+    }
   }
 
   return (
-    <div className="space-y-6">
-      <h1 className="text-xl font-bold">Change Password</h1>
-      <Card>
-        <CardContent>
+    <Card className="max-w-6xl">
+      <CardContent>
+        <div className="space-y-6 max-w-6xl">
+          <h1 className="text-xl font-bold">Change Password</h1>
+
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <FormField
@@ -95,12 +112,14 @@ function ChangePassword() {
                 )}
               />
 
-              <Button type="submit">Update Password</Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "Updating..." : "Update Password"}
+              </Button>
             </form>
           </Form>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 }
 
