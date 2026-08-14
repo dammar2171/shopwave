@@ -170,3 +170,4 @@ export interface NotificationSettings {
   emailOnLowStock: boolean
   emailOnNewReview: boolean
 }
+
