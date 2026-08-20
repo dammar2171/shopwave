@@ -2,8 +2,7 @@ import { Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-
-const categories = ["All", "Electronics", "Footwear", "Home", "Clothing"];
+import { useGetCategoriesQuery } from "../categories/categoriesApi";
 
 interface ProductFiltersProps {
   searchQuery: string;
@@ -18,6 +17,10 @@ export function ProductFilters({
   selectedCategory,
   onCategoryChange,
 }: ProductFiltersProps) {
+  const { data: response } = useGetCategoriesQuery();
+
+  const categories = response?.data ?? [];
+
   const hasActiveFilters = searchQuery !== "" || selectedCategory !== "All";
 
   return (
@@ -49,16 +52,16 @@ export function ProductFilters({
         <div className="flex gap-2 flex-wrap">
           {categories.map((category) => (
             <button
-              key={category}
-              onClick={() => onCategoryChange(category)}
+              key={category.name}
+              onClick={() => onCategoryChange(category.name)}
               className={cn(
                 "px-3 py-1.5 rounded-full text-xs font-medium border transition-colors",
-                selectedCategory === category
+                selectedCategory === category.name
                   ? "bg-primary text-primary-foreground border-primary"
                   : "border-input hover:bg-accent text-muted-foreground",
               )}
             >
-              {category}
+              {category.name}
             </button>
           ))}
         </div>

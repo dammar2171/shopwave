@@ -22,6 +22,7 @@ function ProductListPage() {
 
   const products = response?.data ?? [];
 
+
   function handleCategoryChange(category: string) {
     if (category === "All") {
       searchParams.delete("category");
